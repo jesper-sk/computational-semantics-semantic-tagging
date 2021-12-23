@@ -29,7 +29,7 @@ if __name__ == "__main__":
     from argparse import ArgumentParser
 
     parser = ArgumentParser()
-    parser.add_argument('path', required=True)
+    parser.add_argument('path')
     parser.add_argument('-p', '--printc', type=int, default=20)
     args = parser.parse_args()
 

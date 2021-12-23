@@ -1,6 +1,3 @@
-
-
-from argparse import ArgumentParser
 def read_file(path):
     with open(path, 'r') as file:
         lines = file.readlines()
@@ -38,4 +35,3 @@ if __name__ == "__main__":
 
     d = read_file(args.path)
     pprint(d[:args.printc])
-    

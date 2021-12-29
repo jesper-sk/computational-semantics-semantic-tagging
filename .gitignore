@@ -3,6 +3,7 @@
 *.conll
 models/
 output/
+.vscode/
 
 # -------- Python ignores below --------
 

@@ -1,6 +1,8 @@
 # Project-specific ignores
 # Data set
 *.conll
+models/
+output/
 
 # -------- Python ignores below --------
 

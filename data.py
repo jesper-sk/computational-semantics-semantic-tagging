@@ -15,7 +15,7 @@ def read_file(path):
     for line in lines:
         if line.startswith('#') or line.startswith('\n'):
             continue
-        
+
         tokens = line.split('\t')
         entry = {}
         for i,label in enumerate(labels):
@@ -23,6 +23,19 @@ def read_file(path):
         out.append(entry)
 
     return out
+
+def dt_data(path):
+    X = [] # data
+    y = [] # target
+    with open(path) as dataset:
+        for row in dataset:
+            if row.startswith(('#', '\n')):
+                continue
+            fields = row.removesuffix('\n').split('\t')
+            X.append(fields[1]) # word
+            y.append(fields[3]) # semtag
+
+    return X, y
 
 if __name__ == "__main__":
     from pprint import pprint

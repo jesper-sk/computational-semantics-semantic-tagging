@@ -1,3 +1,6 @@
+from typing import List, Tuple
+
+
 def read_file(path):
     with open(path, 'r') as file:
         lines = file.readlines()
@@ -24,7 +27,9 @@ def read_file(path):
 
     return out
 
-def dt_data(path):
+def dt_data(path) -> Tuple[List[str], List[str]]:
+    """Data formatted for the DecisionTree tagger
+    """
     X = [] # data
     y = [] # target
     with open(path) as dataset:
@@ -37,6 +42,29 @@ def dt_data(path):
 
     return X, y
 
+def tnt_data(path) -> List[List[Tuple[str, str]]]:
+    """Data formatted for the TnT tagger. Returns a list of tagged sentences [[(word, tag)]]"""
+    data = []
+    with open(path) as dataset:
+        sentence = []
+        for row in dataset:
+            # Ignore comments
+            if row.startswith('#'):
+                continue
+            # Start a new sentence when encountering a newline
+            if row.startswith('\n'):
+                # Entries are separated by multiple newlines
+                if len(sentence) > 0:
+                    data.append(sentence)
+                    sentence = []
+                continue
+
+            fields = row.removesuffix('\n').split('\t')
+            sentence.append((fields[1], fields[3]))
+
+    return data
+
+
 if __name__ == "__main__":
     from pprint import pprint
     from argparse import ArgumentParser
@@ -44,7 +72,14 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument('path')
     parser.add_argument('-p', '--printc', type=int, default=20)
+    parser.add_argument('-c', '--classifier', type=str.lower, choices=['dt', 'tnt'])
     args = parser.parse_args()
 
-    d = read_file(args.path)
+    if args.classifier == 'tnt':
+        d = tnt_data(args.path)
+    elif args.classifier == 'dt':
+        d = dt_data(args.path)
+    else:
+        d = read_file(args.path)
+    
     pprint(d[:args.printc])

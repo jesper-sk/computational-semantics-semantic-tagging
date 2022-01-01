@@ -1,19 +1,22 @@
 import argparse
 import sys
 from baseline.DecisionTreeTagger import DecisionTreeTagger, DecisionTreeTaggerOptions
+from baseline.TrigramTagger import TrigramTagger
 
 def main(args):
     if args.classifier == 'dt':
         opts = DecisionTreeTaggerOptions()
         opts.load_pretrained = not args.force_train
         tagger = DecisionTreeTagger(opts)
-        if args.training_data is not None:
-            tagger.train(args.training_data)
-        if args.data is not None:
-            tagger.classify(args.data)
     elif args.classifier == 'tnt':
-        print("Sorry, this classifier has not been implemented yet.")
-        sys.exit()
+        tagger = TrigramTagger()
+
+    if args.training_data is not None:
+        tagger.train(args.training_data)
+    if args.data is not None:
+        tagger.classify(args.data)
+        tagger.accuracy(args.data)
+    sys.exit()
 
 
 if __name__ == "__main__":

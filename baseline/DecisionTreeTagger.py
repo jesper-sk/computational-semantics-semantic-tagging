@@ -98,7 +98,7 @@ class DecisionTreeTagger:
         # Check accuracy on test set
         out_predicted = self.__model.predict(in_test)
         acc = accuracy_score(out_test, out_predicted)
-        print(f"This model has a training accuracy of {acc * 100:02}%.")
+        print(f"This model has a training accuracy of {acc * 100:.2f}%.")
 
         # Save model to file
         os.makedirs('./models/', exist_ok=True)
@@ -106,18 +106,28 @@ class DecisionTreeTagger:
             pickle.dump(self.__model, model_pickle)
 
 
-    def classify(self, path) -> List:
+    def accuracy(self, input_path):
+        """Evaluates the accuracy of the model on a (tagged) test set"""
+        if self.__model is None:
+            print("No model available. Please train the model first.")
+        else:
+            words, data_vectors, true_tags = self.__prepare_data(input_path)
+            predictions = self.__model.predict(data_vectors)
+            acc = accuracy_score(true_tags, predictions)
+            input_filename = os.path.basename(input_path)
+            print(f"This model has an accuracy of {acc * 100:02}% on {input_filename}.")
+
+
+    def classify(self, input_path) -> List:
         """Classify new data after training. Expects a list of words as input.
         Saves the output to a file.
         """
         if self.__model is None:
             print("No model available. Please train the model first.")
         else:
-            words, data_vectors, true_tags = self.__prepare_data(path)
+            words, data_vectors, _ = self.__prepare_data(input_path)
             predictions = self.__model.predict(data_vectors)
-            acc = accuracy_score(true_tags, predictions)
-            input_filename = os.path.basename(path)
-            print(f"This model has an accuracy of {acc * 100:02}% on {input_filename}.")
+            input_filename = os.path.basename(input_path)
             os.makedirs('./output/', exist_ok=True)
             file_name = f'./output/dt_{input_filename}_{datetime.now():%Y-%m-%d_%H:%M}.tsv'
             with open(file_name, 'w') as f:

@@ -3,6 +3,7 @@ import sys
 from baseline.DecisionTreeTagger import DecisionTreeTagger, DecisionTreeTaggerOptions
 from baseline.SvmTagger import SvmClassifier
 from baseline.TrigramTagger import TrigramTagger
+from baseline.HiddenMarkovModel import HmmTagger
 
 def main(args):
     if args.classifier == 'dt':
@@ -13,6 +14,8 @@ def main(args):
         tagger = TrigramTagger()
     elif args.classifier == 'svm':
         tagger = SvmClassifier()
+    elif args.classifier == 'hmm':
+        tagger = HmmTagger()
 
     if args.training_data is not None:
         tagger.train(args.training_data)
@@ -31,8 +34,8 @@ if __name__ == "__main__":
         type=str,
         default=None)
     parser.add_argument('-c', '--classifier',
-        help='The classifier to use. DT: decision tree; TNT: Trigrams\'n\'tags',
-        choices=['dt', 'tnt', 'svm'],
+        help='The classifier to use. DT: decision tree; TNT: Trigrams\'n\'tags; HMM: Hidden Markov Model',
+        choices=['dt', 'tnt', 'svm', 'hmm'],
         type=str.lower)
     parser.add_argument('-d', '--data',
         help='Data to classify',

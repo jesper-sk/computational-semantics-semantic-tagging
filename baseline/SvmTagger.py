@@ -118,7 +118,7 @@ class SvmClassifier:
 
         # Save model to file
         os.makedirs('./models/', exist_ok=True)
-        with open('./models/dt_model.pkl', 'wb') as model_pickle:
+        with open('./models/svm_model.pkl', 'wb') as model_pickle:
             pickle.dump(self.__model, model_pickle)
 
 

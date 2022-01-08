@@ -1,6 +1,7 @@
 import argparse
 import sys
 from baseline.DecisionTreeTagger import DecisionTreeTagger, DecisionTreeTaggerOptions
+from baseline.SvmTagger import SvmClassifier
 from baseline.TrigramTagger import TrigramTagger
 
 def main(args):
@@ -10,6 +11,8 @@ def main(args):
         tagger = DecisionTreeTagger(opts)
     elif args.classifier == 'tnt':
         tagger = TrigramTagger()
+    elif args.classifier == 'svm':
+        tagger = SvmClassifier()
 
     if args.training_data is not None:
         tagger.train(args.training_data)
@@ -29,7 +32,7 @@ if __name__ == "__main__":
         default=None)
     parser.add_argument('-c', '--classifier',
         help='The classifier to use. DT: decision tree; TNT: Trigrams\'n\'tags',
-        choices=['dt', 'tnt'],
+        choices=['dt', 'tnt', 'svm'],
         type=str.lower)
     parser.add_argument('-d', '--data',
         help='Data to classify',

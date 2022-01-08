@@ -129,7 +129,7 @@ class DecisionTreeTagger:
             predictions = self.__model.predict(data_vectors)
             input_filename = os.path.basename(input_path)
             os.makedirs('./output/', exist_ok=True)
-            file_name = f'./output/dt_{input_filename}_{datetime.now():%Y-%m-%d_%H:%M}.tsv'
+            file_name = f'./output/dt_{input_filename}_{datetime.now():%Y-%m-%d_%H%M}.tsv'
             with open(file_name, 'w') as f:
                 f.write("word\tpredicted tag\n")
                 for (d_input, d_output) in zip(words, predictions):

@@ -64,6 +64,9 @@ def tnt_data(path) -> List[List[Tuple[str, str]]]:
 
     return data
 
+def test(path):
+    with open(path, 'r') as file:
+        print(file[1000:1020])
 
 if __name__ == "__main__":
     from pprint import pprint
@@ -72,7 +75,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument('path')
     parser.add_argument('-p', '--printc', type=int, default=20)
-    parser.add_argument('-c', '--classifier', type=str.lower, choices=['dt', 'tnt'])
+    parser.add_argument('-c', '--classifier', type=str.lower, choices=['dt', 'tnt', 'def'])
     args = parser.parse_args()
 
     if args.classifier == 'tnt':

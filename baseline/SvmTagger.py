@@ -8,7 +8,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 from baseline.WordEmbeddingClassifier import WordEmbeddingClassifier
 
-import data
 import os
 import pickle
 
@@ -19,12 +18,8 @@ class SvmClassifierOptions:
     """
     # The kernel function for the svm
     kernel: str = "linear"
-    # Whether to perform n-fold cross-validation, and if so, for what value of n
-    n_fold_cv: int = None
     # Whether to use grid search to find best parameters
     use_grid_search: bool = False
-    # The fraction of the data to use as training data
-    train_split: float = 0.2
     # Whether to load a pretrained model if one is available
     load_pretrained = True
 
@@ -51,9 +46,8 @@ class SvmClassifier(WordEmbeddingClassifier):
         """
         if self.__options.load_pretrained:
             if self.load_model():
-                print(
-                    "Found pretrained svm model. Skipping training (use --force-train to force training)."
-                )
+                print("""Found pretrained svm model. Skipping training
+                (use --force-train to force training).""")
                 return
             else:
                 print("No pretrained svm model found, training now...")
@@ -99,9 +93,8 @@ class SvmClassifier(WordEmbeddingClassifier):
             predictions = self.__model.predict(data_vectors)
             acc = accuracy_score(true_tags, predictions)
             input_filename = os.path.basename(input_path)
-            print(
-                f"This model has an accuracy of {acc * 100:02}% on {input_filename}."
-            )
+            print(f"""This model has an accuracy of {acc * 100:02}% on
+                {input_filename}.""")
 
     def classify(self, input_path) -> List:
         """Classify new data after training. Expects a list of words as input.
@@ -114,7 +107,8 @@ class SvmClassifier(WordEmbeddingClassifier):
             predictions = self.__model.predict(data_vectors)
             input_filename = os.path.basename(input_path)
             os.makedirs('./output/', exist_ok=True)
-            file_name = f'./output/svm_{input_filename}_{datetime.now():%Y-%m-%d_%H%M}.tsv'
+            file_name = f"""./output/svm_{input_filename}_
+            {datetime.now():%Y-%m-%d_%H%M}.tsv"""
             with open(file_name, 'w') as f:
                 f.write("word\tpredicted tag\n")
                 for (d_input, d_output) in zip(words, predictions):

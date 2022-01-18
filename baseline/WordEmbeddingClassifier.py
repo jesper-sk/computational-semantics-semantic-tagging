@@ -3,11 +3,11 @@ import fasttext.util
 import os
 import data
 
+
 class WordEmbeddingClassifier:
     """Base class for the SVM and DT taggers since they use the same word
     embedding
     """
-
     def __init__(self) -> None:
         self.__word_embedding: fasttext.FastText = self.__get_word_embedding()
 
@@ -22,7 +22,7 @@ class WordEmbeddingClassifier:
         os.makedirs('./models/', exist_ok=True)
         os.chdir('./models')
         fasttext.util.download_model('en')
-        
+
         # Change back to original wd
         os.chdir(current_wd)
 
@@ -33,8 +33,8 @@ class WordEmbeddingClassifier:
         """Transform a data set of words into vectors"""
 
         in_raw, out = data.dt_data(input_data)
-        # Prepare the data by transforming words to vectors
-        # This is slow because FastText doesn't have a vectorized way to do this
-        # (i.e. we would ideally do self.__word_embedding[in_raw])
+        # Prepare the data by transforming words to vectors. This is slow
+        # because FastText doesn't have a vectorized way to do this (i.e. we
+        # would ideally do self.__word_embedding[in_raw])
         in_vectors = [self.__word_embedding[word] for word in in_raw]
         return in_raw, in_vectors, out

@@ -16,16 +16,9 @@ import pickle
 class SvmClassifierOptions:
     """Options for the svm tagger.
     """
-<<<<<<< HEAD
     # which SVm classifier from sklearn to use
     # svm: svm.SVC(C=10, kernel='linear')
     svm = svm.LinearSVC(dual=False, C=10)
-    # Whether to perform n-fold cross-validation, and if so, for what value of n
-    n_fold_cv: int = None
-=======
-    # The kernel function for the svm
-    kernel: str = "linear"
->>>>>>> ece07ed829abcefc30ac67a7de9260bdaaa504c0
     # Whether to use grid search to find best parameters
     use_grid_search: bool = False
     # Whether to load a pretrained model if one is available
@@ -70,7 +63,6 @@ class SvmClassifier(WordEmbeddingClassifier):
                 'C': [0.1, 1, 10, 100, 1000],
             }
             clf = make_pipeline(
-<<<<<<< HEAD
                 StandardScaler(), 
                 GridSearchCV(
                     self.__options.svm, 
@@ -84,16 +76,6 @@ class SvmClassifier(WordEmbeddingClassifier):
                 StandardScaler(), 
                 self.__options.svm
                 )
-=======
-                StandardScaler(),
-                GridSearchCV(svm.SVC(kernel=self.__options.kernel),
-                             params,
-                             n_jobs=4,
-                             refit=True))
-        else:
-            clf = make_pipeline(StandardScaler(),
-                                svm.SVC(kernel=self.__options.kernel))
->>>>>>> ece07ed829abcefc30ac67a7de9260bdaaa504c0
 
         clf.fit(X=in_train, y=out_train)
         self.__model = clf

@@ -67,6 +67,31 @@ def tnt_data(path) -> List[List[Tuple[str, str]]]:
 
     return data
 
+def nn_data(path):
+    """
+    Data formatted for neural networks
+    """
+    X = []
+    y = []
+    with open(path) as dataset:
+        sentence = []
+        tags = []
+        for row in dataset:
+            # Ignore comments
+            if row.startswith('#'):
+                continue
+            # Start a new sentence with each new line
+            if row.startswith('\n'):
+                if len(sentence) > 0:
+                    X.append(sentence)
+                    y.append(tags)
+                    sentence = []
+                    tags = []
+                continue
+            fields = row.removesuffix('\n').split('\t')
+            sentence.append(fields[1])
+            tags.append(fields[3])
+    return X, y
 
 def test(path):
     with open(path, 'r') as file:

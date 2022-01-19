@@ -4,15 +4,17 @@ import nltk
 import os
 import data
 
+
 @dataclass
 class TrigramTaggerOptions():
     pass
+
 
 class HmmTagger:
     def __init__(self, options: TrigramTaggerOptions = None) -> None:
         self.__options = options or TrigramTaggerOptions()
         self.__model = None
-    
+
     def train(self, input_path: str) -> None:
         training_data = data.tnt_data(input_path)
         trainer = nltk.tag.hmm.HiddenMarkovModelTrainer()
@@ -27,7 +29,8 @@ class HmmTagger:
             input_filename = os.path.basename(input_path)
             input_data = data.tnt_data(input_path)
             acc = self.__model.accuracy(input_data)
-            print(f"This model has an accuracy of {acc * 100:.2f}% on {input_filename}.")
+            print(f"""This model has an accuracy of {acc * 100:.2f}% on
+                {input_filename}.""")
 
     def classify(self, input_path):
         """Classify new data after training. Expects a list of words as input.
@@ -39,11 +42,13 @@ class HmmTagger:
             # For now, just take as input the original format. For actual use,
             # this function should take as input a list instead of a path.
             input_data = data.tnt_data(input_path)
-            input_data_notags = [ [ word for (word, _) in sentence ] for sentence in input_data ]
+            input_data_notags = [[word for (word, _) in sentence]
+                                 for sentence in input_data]
             predictions = [self.__model.tag(lst) for lst in input_data_notags]
             input_filename = os.path.basename(input_path)
             os.makedirs('./output/', exist_ok=True)
-            file_name = f'./output/tnt_{input_filename}_{datetime.now():%Y-%m-%d_%H%M}.tsv'
+            file_name = f'''./output/tnt_{input_filename}_
+            {datetime.now():%Y-%m-%d_%H%M}.tsv'''
             with open(file_name, 'w') as f:
                 f.write("word\tpredicted tag\n")
                 for sentence in predictions:

@@ -17,8 +17,9 @@ import pickle
 class SvmClassifierOptions:
     """Options for the svm tagger.
     """
-    # The kernel function for the svm
-    kernel: str = "linear"
+    # which SVm classifier from sklearn to use
+    # svm: svm.SVC(C=10, kernel='linear')
+    svm = svm.LinearSVC(dual=False, C=10)
     # Whether to perform n-fold cross-validation, and if so, for what value of n
     n_fold_cv: int = None
     # Whether to use grid search to find best parameters
@@ -96,7 +97,7 @@ class SvmClassifier:
             clf = make_pipeline(
                 StandardScaler(), 
                 GridSearchCV(
-                    svm.SVC(kernel=self.__options.kernel), 
+                    self.__options.svm, 
                     params, 
                     n_jobs=4,
                     refit=True
@@ -105,7 +106,7 @@ class SvmClassifier:
         else:
             clf = make_pipeline(
                 StandardScaler(), 
-                svm.SVC(kernel=self.__options.kernel)
+                self.__options.svm
                 )
 
         clf.fit(X=in_train, y=out_train)

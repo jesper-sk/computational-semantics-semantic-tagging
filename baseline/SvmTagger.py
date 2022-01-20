@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from sklearn import svm
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.pipeline import make_pipeline
 from baseline.WordEmbeddingClassifier import WordEmbeddingClassifier
 
@@ -17,8 +17,8 @@ class SvmClassifierOptions:
     """Options for the svm tagger.
     """
     # which SVm classifier from sklearn to use
-    # svm: svm.SVC(C=10, kernel='linear')
-    svm = svm.LinearSVC(dual=False, C=10)
+    svm = svm.SVC(kernel='linear')
+    # svm = svm.LinearSVC(verbose=1)
     # Whether to use grid search to find best parameters
     use_grid_search: bool = False
     # Whether to load a pretrained model if one is available
@@ -28,7 +28,9 @@ class SvmClassifierOptions:
 class SvmClassifier(WordEmbeddingClassifier):
     """A semantic tagger using a support-vector machine.
     """
-    def __init__(self, options: SvmClassifierOptions = None, lang: str = 'en') -> None:
+    def __init__(self,
+                 options: SvmClassifierOptions = None,
+                 lang: str = 'en') -> None:
         super().__init__(lang=lang)
         # take defaults if no options given
         self.__options = options or SvmClassifierOptions()
@@ -36,7 +38,8 @@ class SvmClassifier(WordEmbeddingClassifier):
 
     def load_model(self):
         if os.path.exists(f'./models/svm_model_{self.lang}.pkl'):
-            with open(f'./models/svm_model_{self.lang}.pkl', 'rb') as model_pickle:
+            with open(f'./models/svm_model_{self.lang}.pkl',
+                      'rb') as model_pickle:
                 self.__model = pickle.load(model_pickle)
             return True
         else:
@@ -47,8 +50,8 @@ class SvmClassifier(WordEmbeddingClassifier):
         """
         if self.__options.load_pretrained:
             if self.load_model():
-                print("""Found pretrained svm model. Skipping training
-                (use --force-train to force training).""")
+                print('Found pretrained svm model. Skipping training ' +
+                '(use --force-train to force training).')
                 return
             else:
                 print("No pretrained svm model found, training now...")
@@ -63,19 +66,10 @@ class SvmClassifier(WordEmbeddingClassifier):
                 'C': [0.1, 1, 10, 100, 1000],
             }
             clf = make_pipeline(
-                StandardScaler(), 
-                GridSearchCV(
-                    self.__options.svm, 
-                    params, 
-                    n_jobs=4,
-                    refit=True
-                    )
-                )
+                StandardScaler(),
+                GridSearchCV(self.__options.svm, params, n_jobs=4, refit=True))
         else:
-            clf = make_pipeline(
-                StandardScaler(), 
-                self.__options.svm
-                )
+            clf = make_pipeline(MinMaxScaler(feature_range=(-1,1)), self.__options.svm)
 
         clf.fit(X=in_train, y=out_train)
         self.__model = clf
@@ -99,8 +93,7 @@ class SvmClassifier(WordEmbeddingClassifier):
             predictions = self.__model.predict(data_vectors)
             acc = accuracy_score(true_tags, predictions)
             input_filename = os.path.basename(input_path)
-            print(f"""This model has an accuracy of {acc * 100:02}% on
-                {input_filename}.""")
+            print(f'This model has an accuracy of {acc * 100:02}% on {input_filename}.')
 
     def classify(self, input_path) -> List:
         """Classify new data after training. Expects a list of words as input.
@@ -113,8 +106,7 @@ class SvmClassifier(WordEmbeddingClassifier):
             predictions = self.__model.predict(data_vectors)
             input_filename = os.path.basename(input_path)
             os.makedirs('./output/', exist_ok=True)
-            file_name = f"""./output/svm_{input_filename}_
-            {datetime.now():%Y-%m-%d_%H%M}.tsv"""
+            file_name = f'./output/svm_{input_filename}_{datetime.now():%Y-%m-%d_%H%M}.tsv'
             with open(file_name, 'w') as f:
                 f.write("word\tpredicted tag\n")
                 for (d_input, d_output) in zip(words, predictions):

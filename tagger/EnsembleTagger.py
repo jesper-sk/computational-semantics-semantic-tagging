@@ -20,7 +20,7 @@ class EnsembleTaggerOptions:
     load_pretrained = True
 
 class EnsembleTagger(WordEmbeddingClassifier):
-    """An ensemble tagger.
+    """An ensemble tagger. NOTE: does not work yet.
     """
     def __init__(self, options: EnsembleTaggerOptions = None) -> None:
         super().__init__()

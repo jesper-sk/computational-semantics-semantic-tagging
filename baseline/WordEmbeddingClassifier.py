@@ -18,16 +18,22 @@ class WordEmbeddingClassifier:
         # Save current wd
         current_wd = os.getcwd()
 
+        # Set name of model file
+        model_fname = f'./models/cc.{self.lang}.300.bin'
+
         # Download model to ./models/ subfolder
         os.makedirs('./models/', exist_ok=True)
         os.chdir('./models')
         fasttext.util.download_model(self.lang)
 
+        # Remove compressed model to save some space
+        os.remove(f'{model_fname}.gz')
+
         # Change back to original wd
         os.chdir(current_wd)
 
         # Return model
-        return fasttext.load_model(f'./models/cc.{self.lang}.300.bin')
+        return fasttext.load_model(model_fname)
 
     def prepare_data(self, input_data):
         """Transform a data set of words into vectors"""

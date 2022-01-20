@@ -41,3 +41,19 @@ Or if you want to classify new data using a pre-trained decision tree classifier
 ```bash
 python main.py -d test.conll -c dt
 ```
+
+## Testing
+
+To run all the classifiers in this repository on all datasets, you can use
+`multilang.py` as follows:
+
+```bash
+multilang.py en nl de it # You can omit any of the languages here
+```
+
+This will download the data sets and run the models.
+
+**NOTE*: This *will* take a long time and take up quite a bit of disk space. The
+decision tree model and SVM depend on language-specific word embeddings, which
+each take up about 7.24GB. Thus, if you run the classifiers for all languages,
+you need to have about 29GB of disk space available.

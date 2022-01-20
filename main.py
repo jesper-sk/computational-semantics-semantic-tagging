@@ -2,7 +2,8 @@ import argparse
 import sys
 from baseline.DecisionTreeTagger import DecisionTreeTagger, \
                                         DecisionTreeTaggerOptions
-from baseline.SvmTagger import SvmClassifier
+from baseline.SvmTagger import SvmClassifier, \
+                               SvmClassifierOptions
 from baseline.TrigramTagger import TrigramTagger
 from baseline.HiddenMarkovModel import HmmTagger
 from tagger.EnsembleTagger import EnsembleTagger
@@ -16,7 +17,9 @@ def main(args):
     elif args.classifier == 'tnt':
         tagger = TrigramTagger()
     elif args.classifier == 'svm':
-        tagger = SvmClassifier()
+        opts = SvmClassifierOptions()
+        opts.load_pretrained = not args.force_train
+        tagger = SvmClassifier(opts)
     elif args.classifier == 'hmm':
         tagger = HmmTagger()
     elif args.classifier == 'ens':

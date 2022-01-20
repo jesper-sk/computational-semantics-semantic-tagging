@@ -8,7 +8,7 @@ from baseline.DecisionTreeTagger import DecisionTreeTagger, \
 from baseline.SvmTagger import SvmClassifier
 from baseline.TrigramTagger import TrigramTagger
 from baseline.HiddenMarkovModel import HmmTagger
-from tagger.RNNTagger import RnnTagger
+# from tagger.RNNTagger import RnnTagger
 
 
 def download_data(langs: List[str],
@@ -63,15 +63,19 @@ if __name__ == '__main__':
         exit()
 
     download_data(langs)
-    taggers = [DecisionTreeTagger, SvmClassifier, TrigramTagger,
-               HmmTagger, RnnTagger]
+    taggers = [ DecisionTreeTagger
+              , SvmClassifier
+              , TrigramTagger
+              , HmmTagger
+            # , RnnTagger
+              ]
     os.makedirs('./output/', exist_ok=True)
     output = open('./output/multilang_output.txt', 'w')
     sys.stdout = output
     for lang in langs:
         print(f"LANGUAGE: {lang}")
         for tagger in taggers:
-            t = tagger()
+            t = tagger(lang=lang)
             print(f"CLASSIFIER: {type(t).__name__}")
             t.train(f'./data/{lang}/train.conll')
             t.accuracy(f'./data/{lang}/test.conll')

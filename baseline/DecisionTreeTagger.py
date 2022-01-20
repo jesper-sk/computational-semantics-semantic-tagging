@@ -23,16 +23,16 @@ class DecisionTreeTaggerOptions:
 class DecisionTreeTagger(WordEmbeddingClassifier):
     """A semantic tagger using decision trees
     """
-    def __init__(self, options: DecisionTreeTaggerOptions = None) -> None:
-        super().__init__()
+    def __init__(self, options: DecisionTreeTaggerOptions = None, lang: str = 'en') -> None:
+        super().__init__(lang=lang)
         self.__options = options or DecisionTreeTaggerOptions(
         )  # take defaults if no options given
         self.__model = None
 
     def load_model(self):
         """Load a pretrained model"""
-        if os.path.exists('./models/dt_model.pkl'):
-            with open('./models/dt_model.pkl', 'rb') as model_pickle:
+        if os.path.exists(f'./models/dt_model_{self.lang}.pkl'):
+            with open(f'./models/dt_model_{self.lang}.pkl', 'rb') as model_pickle:
                 self.__model = pickle.load(model_pickle)
             return True
         return False
@@ -76,7 +76,7 @@ class DecisionTreeTagger(WordEmbeddingClassifier):
 
         # Save model to file
         os.makedirs('./models/', exist_ok=True)
-        with open('./models/dt_model.pkl', 'wb') as model_pickle:
+        with open(f'./models/dt_model_{self.lang}.pkl', 'wb') as model_pickle:
             pickle.dump(self.__model, model_pickle)
 
     def accuracy(self, input_path):

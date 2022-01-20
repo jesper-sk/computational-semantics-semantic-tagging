@@ -8,11 +8,11 @@ class WordEmbeddingClassifier:
     """Base class for the SVM and DT taggers since they use the same word
     embedding
     """
-    def __init__(self) -> None:
+    def __init__(self, lang: str) -> None:
+        self.lang: str = lang
         self.__word_embedding: fasttext.FastText = self.__get_word_embedding()
 
-    @classmethod
-    def __get_word_embedding(cls) -> fasttext.FastText:
+    def __get_word_embedding(self) -> fasttext.FastText:
         """Get a pretrained word embedding. Downloads it first if necessary."""
 
         # Save current wd
@@ -21,13 +21,13 @@ class WordEmbeddingClassifier:
         # Download model to ./models/ subfolder
         os.makedirs('./models/', exist_ok=True)
         os.chdir('./models')
-        fasttext.util.download_model('en')
+        fasttext.util.download_model(self.lang)
 
         # Change back to original wd
         os.chdir(current_wd)
 
         # Return model
-        return fasttext.load_model('./models/cc.en.300.bin')
+        return fasttext.load_model(f'./models/cc.{self.lang}.300.bin')
 
     def prepare_data(self, input_data):
         """Transform a data set of words into vectors"""

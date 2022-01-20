@@ -11,7 +11,7 @@ class TrigramTaggerOptions():
 
 
 class HmmTagger:
-    def __init__(self, options: TrigramTaggerOptions = None) -> None:
+    def __init__(self, options: TrigramTaggerOptions = None, lang: str = None) -> None:
         self.__options = options or TrigramTaggerOptions()
         self.__model = None
 

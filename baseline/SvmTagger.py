@@ -28,15 +28,15 @@ class SvmClassifierOptions:
 class SvmClassifier(WordEmbeddingClassifier):
     """A semantic tagger using a support-vector machine.
     """
-    def __init__(self, options: SvmClassifierOptions = None) -> None:
-        super().__init__()
+    def __init__(self, options: SvmClassifierOptions = None, lang: str = 'en') -> None:
+        super().__init__(lang=lang)
         # take defaults if no options given
         self.__options = options or SvmClassifierOptions()
         self.__model = None
 
     def load_model(self):
-        if os.path.exists('./models/svm_model.pkl'):
-            with open('./models/svm_model.pkl', 'rb') as model_pickle:
+        if os.path.exists(f'./models/svm_model_{self.lang}.pkl'):
+            with open(f'./models/svm_model_{self.lang}.pkl', 'rb') as model_pickle:
                 self.__model = pickle.load(model_pickle)
             return True
         else:
@@ -87,7 +87,7 @@ class SvmClassifier(WordEmbeddingClassifier):
 
         # Save model to file
         os.makedirs('./models/', exist_ok=True)
-        with open('./models/svm_model.pkl', 'wb') as model_pickle:
+        with open(f'./models/svm_model_{self.lang}.pkl', 'wb') as model_pickle:
             pickle.dump(self.__model, model_pickle)
 
     def accuracy(self, input_path):

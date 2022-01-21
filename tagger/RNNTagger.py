@@ -12,42 +12,44 @@ from gensim.models import KeyedVectors
 from typing import List, Tuple
 from sklearn.model_selection import train_test_split
 import numpy as np
-from data import nn_data
+from baseline.WordEmbeddingClassifier import WordEmbeddingClassifier
+from data import nn_data, dt_data
+import fasttext
 
 ############
 # RNN Class
 ############
 
 
-class RNNTagger:
+class RNNTagger(WordEmbeddingClassifier):
     """
     A semantic tagger using a recurrant neural network
     """
     def __init__(self, lang: str = 'en'):
+        super().__init__(lang)
         self.__model = None
-        self.__word_embedding = None
         self.__max_vec_length = None
         self.__y_num_classes = None
 
-    def __get_word_embedding(self):
-        path_name = "models/GoogleNews-vectors-negative300.bin"
-        if os.path.exists("models/GoogleNews-vectors-negative300.bin"):
-            print("Using word2vec word embeddings...")
-            return path_name
-        else:
-            print(
-                "Word embeddings not found; running without embedding weights..."
-            )
+    # def __get_word_embedding(self):
+    #     path_name = "models/GoogleNews-vectors-negative300.bin"
+    #     if os.path.exists("models/GoogleNews-vectors-negative300.bin"):
+    #         print("Using word2vec word embeddings...")
+    #         return path_name
+    #     else:
+    #         print(
+    #             "Word embeddings not found; running without embedding weights..."
+    #         )
 
     def __prepare_training_data(self, input_data):
-        X, y = nn_data(input_data)
+        X, y = dt_data(input_data)
         X_vec, X_index, X_tokenizer = self.__vectorize(X)
         y_vec, y_index, y_tokenizer = self.__vectorize(y)
         self.__max_vec_length = max([len(i) for i in X_vec])
         X_pad = self.__pad_sequence(X_vec)
         y_pad = self.__pad_sequence(y_vec)
         X, y = X_pad, y_pad
-        y = to_categorical(y)
+        y = to_categorical(y, num_classes=75)
         self.__y_num_classes = y.shape[2]
         return X, y, X_index
 
@@ -58,7 +60,7 @@ class RNNTagger:
         X_pad = self.__pad_sequence(X_vec)
         y_pad = self.__pad_sequence(y_vec)
         X, y = X_pad, y_pad
-        y = to_categorical(y, num_classes=self.__y_num_classes)
+        y = to_categorical(y, num_classes=75)
         return X, y, X_tokenizer, y_tokenizer
 
     def __vectorize(self, text):
@@ -74,16 +76,16 @@ class RNNTagger:
                              truncating="post")
 
     def __word_embed(self, word_index, path=None):
-        if path == None:
-            path = "models/GoogleNews-vectors-negative300.bin"
-        word2vec = KeyedVectors.load_word2vec_format(path, binary=True)
+        # if path == None:
+        #     path = "models/GoogleNews-vectors-negative300.bin"
+        # word2vec = KeyedVectors.load_word2vec_format(path, binary=True)
         EMBEDDING_SIZE = 300
         VOCABULARY_SIZE = len(word_index) + 1
         embedding_weights = np.zeros((VOCABULARY_SIZE, EMBEDDING_SIZE))
         word2id = word_index
         for word, index in word2id.items():
             try:
-                embedding_weights[index, :] = word2vec[word]
+                embedding_weights[index, :] = self.word_embedding[word]
             except KeyError:
                 pass
         return embedding_weights

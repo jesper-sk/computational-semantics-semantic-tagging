@@ -72,7 +72,7 @@ if __name__ == '__main__':
         'tnt': TrigramTagger,
         'hmm': HmmTagger,
         'ens': EnsembleTagger,
-        # 'rnn': RNNTagger
+        'rnn': RNNTagger
     }
 
     if any([lang not in lang_options for lang in langs]):
@@ -95,7 +95,7 @@ if __name__ == '__main__':
             output.write(f"LANGUAGE: {lang}\n")
             for tagger in taggers:
                 t = tagger(lang=lang)
-                output.write(f"CLASSIFIER: {type(t).__name__}\n")
+                output.write(f"CLASSIFIER: {tagger.__name__}\n")
                 t.train(f'./data/{lang}/train.conll')
                 acc = t.accuracy(f'./data/{lang}/test.conll')
                 output.write(f'ACCURACY: {acc}%\n')

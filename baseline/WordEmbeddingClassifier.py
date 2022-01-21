@@ -10,7 +10,7 @@ class WordEmbeddingClassifier:
     """
     def __init__(self, lang: str) -> None:
         self.lang: str = lang
-        self.__word_embedding: fasttext.FastText = self.__get_word_embedding()
+        self.word_embedding: fasttext.FastText = self.__get_word_embedding()
 
     def __get_word_embedding(self) -> fasttext.FastText:
         """Get a pretrained word embedding. Downloads it first if necessary."""
@@ -43,5 +43,5 @@ class WordEmbeddingClassifier:
         # Prepare the data by transforming words to vectors. This is slow
         # because FastText doesn't have a vectorized way to do this (i.e. we
         # would ideally do self.__word_embedding[in_raw])
-        in_vectors = [self.__word_embedding[word] for word in in_raw]
+        in_vectors = [self.word_embedding[word] for word in in_raw]
         return in_raw, in_vectors, out

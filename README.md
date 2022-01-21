@@ -48,7 +48,15 @@ To run all the classifiers in this repository on all datasets, you can use
 `multilang.py` as follows:
 
 ```bash
-multilang.py en nl de it # You can omit any of the languages here
+usage: multilang.py [-h] [-c CLASSIFIERS [CLASSIFIERS ...]] langs [langs ...]
+
+positional arguments:
+  langs                 The languages to work on, separated by spaces. Possible options are [en, de, nl, it], e.g. python multilang.py en nl it.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c CLASSIFIERS [CLASSIFIERS ...], --classifiers CLASSIFIERS [CLASSIFIERS ...]
+                        The classifiers to use. Possible options are[dt, tnt, svm, hmm, ens, rnn]
 ```
 
 This will download the data sets and run the models.

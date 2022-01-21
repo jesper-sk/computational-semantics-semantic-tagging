@@ -52,7 +52,7 @@ if __name__ == '__main__':
         default=['en'],
         dest='langs',
         help='The languages to work on, separated by spaces. ' +
-        'Possible options are en, de, nl, it, ' +
+        'Possible options are [en, de, nl, it], ' +
         'e.g. python multilang.py en nl it.')
     parser.add_argument('-c',
                         '--classifiers',

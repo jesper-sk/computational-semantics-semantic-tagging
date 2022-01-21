@@ -25,11 +25,13 @@ class TrigramTagger:
         """Evaluates the accuracy of the model on a (tagged) test set"""
         if self.__model is None:
             print("No model available. Please train the model first.")
+            return None
         else:
             input_filename = os.path.basename(input_path)
             input_data = data.tnt_data(input_path)
             acc = self.__model.accuracy(input_data)
             print(f"This model has an accuracy of {acc * 100:.2f}% on {input_filename}.")
+            return acc * 100
 
     def classify(self, input_path):
         """Classify new data after training. Expects a list of words as input.

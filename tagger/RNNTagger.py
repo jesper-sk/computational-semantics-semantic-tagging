@@ -1,4 +1,3 @@
-
 ############
 # Imports
 ############
@@ -19,11 +18,12 @@ from data import nn_data
 # RNN Class
 ############
 
+
 class RNNTagger:
     """
     A semantic tagger using a recurrant neural network
     """
-    def __init__(self):
+    def __init__(self, lang: str = 'en'):
         self.__model = None
         self.__word_embedding = None
         self.__max_vec_length = None
@@ -35,7 +35,9 @@ class RNNTagger:
             print("Using word2vec word embeddings...")
             return path_name
         else:
-            print("Word embeddings not found; running without embedding weights...")
+            print(
+                "Word embeddings not found; running without embedding weights..."
+            )
 
     def __prepare_training_data(self, input_data):
         X, y = nn_data(input_data)
@@ -47,7 +49,7 @@ class RNNTagger:
         X, y = X_pad, y_pad
         y = to_categorical(y)
         self.__y_num_classes = y.shape[2]
-        return X, y, X_index 
+        return X, y, X_index
 
     def __prepare_test_data(self, input_data):
         X, y = nn_data(input_data)
@@ -56,21 +58,25 @@ class RNNTagger:
         X_pad = self.__pad_sequence(X_vec)
         y_pad = self.__pad_sequence(y_vec)
         X, y = X_pad, y_pad
-        y = to_categorical(y, num_classes = self.__y_num_classes)
-        return X, y, X_tokenizer, y_tokenizer 
+        y = to_categorical(y, num_classes=self.__y_num_classes)
+        return X, y, X_tokenizer, y_tokenizer
 
     def __vectorize(self, text):
         tokenizer = Tokenizer()
         tokenizer.fit_on_texts(text)
-        return tokenizer.texts_to_sequences(text), tokenizer.word_index, tokenizer
+        return tokenizer.texts_to_sequences(
+            text), tokenizer.word_index, tokenizer
 
     def __pad_sequence(self, vector):
-        return pad_sequences(vector, maxlen = self.__max_vec_length, padding = "pre", truncating = "post")
+        return pad_sequences(vector,
+                             maxlen=self.__max_vec_length,
+                             padding="pre",
+                             truncating="post")
 
-    def __word_embed(self, word_index, path = None):
+    def __word_embed(self, word_index, path=None):
         if path == None:
             path = "models/GoogleNews-vectors-negative300.bin"
-        word2vec = KeyedVectors.load_word2vec_format(path, binary = True)
+        word2vec = KeyedVectors.load_word2vec_format(path, binary=True)
         EMBEDDING_SIZE = 300
         VOCABULARY_SIZE = len(word_index) + 1
         embedding_weights = np.zeros((VOCABULARY_SIZE, EMBEDDING_SIZE))
@@ -91,45 +97,52 @@ class RNNTagger:
         VOCABULARY_SIZE = len(X_index) + 1
         MAX_SEQ_LENGTH = max([len(i) for i in X])
         NUM_CLASSES = self.__y_num_classes
-        
+
         # RNN Instantion
         rnn = Sequential()
-        rnn.add(Embedding(input_dim = VOCABULARY_SIZE,
-                          output_dim = EMBEDDING_SIZE,
-                          input_length = MAX_SEQ_LENGTH,
-                          weights = [embedding_weights],
-                          trainable = True))
-        rnn.add(SimpleRNN(64, return_sequences = True))
-        rnn.add(TimeDistributed(Dense(NUM_CLASSES, activation = "softmax")))
-        rnn.compile(loss = "categorical_crossentropy",
-                    optimizer = "adam",
-                    metrics = ["acc"])
+        rnn.add(
+            Embedding(input_dim=VOCABULARY_SIZE,
+                      output_dim=EMBEDDING_SIZE,
+                      input_length=MAX_SEQ_LENGTH,
+                      weights=[embedding_weights],
+                      trainable=True))
+        rnn.add(SimpleRNN(64, return_sequences=True))
+        rnn.add(TimeDistributed(Dense(NUM_CLASSES, activation="softmax")))
+        rnn.compile(loss="categorical_crossentropy",
+                    optimizer="adam",
+                    metrics=["acc"])
 
         # Train RNN model
-        rnn.fit(X, y, batch_size = 128, epochs = 10)
+        rnn.fit(X, y, batch_size=128, epochs=10)
         self.__model = rnn
 
     def accuracy(self, input_data):
         if self.__model is None:
             print("Please train the RNN first.")
+            return None
         else:
             X_test, y_test, _, _ = self.__prepare_test_data(input_data)
             loss, accuracy = self.__model.evaluate(X_test, y_test)
-            print(f"Acc: {accuracy}")
+            print(f"Acc: {accuracy * 100:.02f}")
+            return accuracy * 100
 
     def classify(self, input_data):
         if self.__model is None:
             print("Please train the RNN first.")
         else:
-            X_test, y_test, X_tokenizer, y_tokenizer = self.__prepare_test_data(input_data)
-            y_new = [[np.argmax(i) for i in j] for j in self.__model.predict(X_test)]
+            X_test, y_test, X_tokenizer, y_tokenizer = self.__prepare_test_data(
+                input_data)
+            y_new = [[np.argmax(i) for i in j]
+                     for j in self.__model.predict(X_test)]
             X_texts = X_tokenizer.sequences_to_texts(X_test)
             y_texts = y_tokenizer.sequences_to_texts(y_new)
             return X_texts, y_texts
 
+
 #######
 # Test
 #######
+
 
 def test():
     rnn = RNNTagger()
@@ -143,4 +156,3 @@ def test():
         print(i, ":")
         print(sentences[i])
         print(tags[i])
-

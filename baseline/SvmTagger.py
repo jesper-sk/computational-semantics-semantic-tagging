@@ -88,12 +88,14 @@ class SvmClassifier(WordEmbeddingClassifier):
         """Evaluates the accuracy of the model on a (tagged) test set"""
         if self.__model is None:
             print("No model available. Please train the model first.")
+            return None
         else:
             _, data_vectors, true_tags = self.prepare_data(input_path)
             predictions = self.__model.predict(data_vectors)
             acc = accuracy_score(true_tags, predictions)
             input_filename = os.path.basename(input_path)
             print(f'This model has an accuracy of {acc * 100:02}% on {input_filename}.')
+            return acc * 100
 
     def classify(self, input_path) -> List:
         """Classify new data after training. Expects a list of words as input.

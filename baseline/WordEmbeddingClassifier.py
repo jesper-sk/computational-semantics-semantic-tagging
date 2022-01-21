@@ -27,7 +27,8 @@ class WordEmbeddingClassifier:
         fasttext.util.download_model(self.lang)
 
         # Remove compressed model to save some space
-        os.remove(f'{model_fname}.gz')
+        if os.path.exists(f'{model_fname}.gz'):
+            os.remove(f'{model_fname}.gz')
 
         # Change back to original wd
         os.chdir(current_wd)

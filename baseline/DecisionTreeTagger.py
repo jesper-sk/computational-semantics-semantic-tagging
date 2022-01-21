@@ -37,7 +37,7 @@ class DecisionTreeTagger(WordEmbeddingClassifier):
             return True
         return False
 
-    def train(self, input_data: str) -> None:
+    def train(self, input_data: str) -> float:
         """Train a decision tree tagger on some data set
         """
         if self.__options.load_pretrained:
@@ -79,10 +79,11 @@ class DecisionTreeTagger(WordEmbeddingClassifier):
         with open(f'./models/dt_model_{self.lang}.pkl', 'wb') as model_pickle:
             pickle.dump(self.__model, model_pickle)
 
-    def accuracy(self, input_path):
+    def accuracy(self, input_path) -> float:
         """Evaluates the accuracy of the model on a (tagged) test set"""
         if self.__model is None:
             print("No model available. Please train the model first.")
+            return None
         else:
             _, data_vectors, true_tags = self.prepare_data(input_path)
             predictions = self.__model.predict(data_vectors)
@@ -90,6 +91,8 @@ class DecisionTreeTagger(WordEmbeddingClassifier):
             input_filename = os.path.basename(input_path)
             print(f"""This model has an accuracy of {acc * 100:.2f}% on
             {input_filename}.""")
+            
+            return acc * 100
 
     def classify(self, input_path) -> List:
         """Classify new data after training. Expects a list of words as input.

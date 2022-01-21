@@ -7,7 +7,7 @@ from sklearn import pipeline, svm
 from baseline.WordEmbeddingClassifier import WordEmbeddingClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.ensemble import VotingClassifier
 from sklearn.metrics import accuracy_score
 
@@ -19,11 +19,14 @@ class EnsembleTaggerOptions:
     # Whether to load a pretrained model if one is available
     load_pretrained = True
 
+
 class EnsembleTagger(WordEmbeddingClassifier):
-    """An ensemble tagger. NOTE: does not work yet.
+    """An ensemble tagger.
     """
-    def __init__(self, options: EnsembleTaggerOptions = None) -> None:
-        super().__init__()
+    def __init__(self,
+                 options: EnsembleTaggerOptions = None,
+                 lang: str = 'en') -> None:
+        super().__init__(lang=lang)
         self.__options = options or EnsembleTaggerOptions()
         self.__model = None
 
@@ -32,11 +35,11 @@ class EnsembleTagger(WordEmbeddingClassifier):
         """
         if self.__options.load_pretrained:
             if self.load_model():
-                print("""Found pretrained svm model. Skipping training
+                print("""Found pretrained ensemble model. Skipping training
                 (use --force-train to force training).""")
                 return
             else:
-                print("No pretrained svm model found, training now...")
+                print("No pretrained ensemble model found, training now...")
         # Prepare data
         _, data_in, data_out = self.prepare_data(input_data)
         in_train, in_test, out_train, out_test = train_test_split(
@@ -44,8 +47,8 @@ class EnsembleTagger(WordEmbeddingClassifier):
 
         # Prepare some models
         dtc = DecisionTreeClassifier()
-        svc = pipeline.make_pipeline(StandardScaler(),
-                                     svm.LinearSVC(dual=False, C=10))
+        svc = pipeline.make_pipeline(MinMaxScaler(feature_range=(-1, 1)),
+                                     svm.SVC())
 
         # Create ensemble model
         vcl = VotingClassifier(estimators=[('dt', dtc), ('svm', svc)])
@@ -59,12 +62,14 @@ class EnsembleTagger(WordEmbeddingClassifier):
 
         # Save model to file
         os.makedirs('./models/', exist_ok=True)
-        with open('./models/ensemble_model.pkl', 'wb') as model_pickle:
+        with open(f'./models/ensemble_model_{self.lang}.pkl',
+                  'wb') as model_pickle:
             pickle.dump(self.__model, model_pickle)
 
     def load_model(self):
-        if os.path.exists('./models/ensemble_model.pkl'):
-            with open('./models/ensemble_model.pkl', 'rb') as model_pickle:
+        if os.path.exists(f'./models/ensemble_model_{self.lang}.pkl'):
+            with open(f'./models/ensemble_model_{self.lang}.pkl',
+                      'rb') as model_pickle:
                 self.__model = pickle.load(model_pickle)
             return True
         else:
@@ -74,13 +79,14 @@ class EnsembleTagger(WordEmbeddingClassifier):
         """Evaluates the accuracy of the model on a (tagged) test set"""
         if self.__model is None:
             print("No model available. Please train the model first.")
+            return None
         else:
             _, data_vectors, true_tags = self.prepare_data(input_path)
             predictions = self.__model.predict(data_vectors)
             acc = accuracy_score(true_tags, predictions)
             input_filename = os.path.basename(input_path)
-            print(f"""This model has an accuracy of {acc * 100:02}% on
-                {input_filename}.""")
+            print(f'This model has an accuracy of {acc * 100:.02f}% on {input_filename}.')
+            return acc * 100
 
     def classify(self, input_path) -> List:
         """Classify new data after training. Expects a list of words as input.
@@ -93,8 +99,7 @@ class EnsembleTagger(WordEmbeddingClassifier):
             predictions = self.__model.predict(data_vectors)
             input_filename = os.path.basename(input_path)
             os.makedirs('./output/', exist_ok=True)
-            file_name = f"""./output/svm_{input_filename}_
-            {datetime.now():%Y-%m-%d_%H%M}.tsv"""
+            file_name = f'./output/svm_{input_filename}_{datetime.now():%Y-%m-%d_%H%M}.tsv'
             with open(file_name, 'w') as f:
                 f.write("word\tpredicted tag\n")
                 for (d_input, d_output) in zip(words, predictions):

@@ -7,6 +7,7 @@ from baseline.SvmTagger import SvmClassifier, \
 from baseline.TrigramTagger import TrigramTagger
 from baseline.HiddenMarkovModel import HmmTagger
 from tagger.EnsembleTagger import EnsembleTagger
+from tagger.RNNTagger import RNNTagger
 
 
 def main(args):
@@ -24,6 +25,8 @@ def main(args):
         tagger = HmmTagger()
     elif args.classifier == 'ens':
         tagger = EnsembleTagger()
+    elif args.classifier == 'rnn':
+        tagger = RNNTagger()
 
     if args.training_data is not None:
         tagger.train(args.training_data)
@@ -48,9 +51,10 @@ if __name__ == "__main__":
                             DT: decision tree;
                             SVM: Support Vector Machine;
                             TNT: Trigrams\'n\'Tags;
-                            HMM: Hidden Markov Model
+                            HMM: Hidden Markov Model;
+                            RNN: Recurrent Neural Network;
                             ENS: Ensemble (DT + SVM)''',
-                        choices=['dt', 'tnt', 'svm', 'hmm', 'ens'],
+                        choices=['dt', 'tnt', 'svm', 'hmm', 'rnn', 'ens'],
                         type=str.lower)
     parser.add_argument('-d',
                         '--data',

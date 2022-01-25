@@ -24,9 +24,9 @@ def download_data(langs: List[str],
     print('Downloading...')
     base_url = f'https://raw.githubusercontent.com/RikVN/DRS_parsing/master/parsing/layer_data/{version}'
     for lang in langs:
-        for fname in ['train.conll', 'test.conll']:
+        save_path = f'./data/{lang}'
+        for fname in ['train.conll', 'test.conll', 'dev.conll']:
             url = f'{base_url}/{lang}/gold/{fname}'
-            save_path = f'./data/{lang}'
             os.makedirs(save_path, exist_ok=True)
 
             if os.path.exists(f'{save_path}/{fname}') and not force:
@@ -41,6 +41,14 @@ def download_data(langs: List[str],
                 else:
                     with open(f'{save_path}/{fname}', 'w') as file:
                         file.write(resp.text)
+
+        # Create merged train/dev set
+        with open(f'{save_path}/train.conll', 'r') as train_txt:
+            with open(f'{save_path}/dev.conll', 'r') as test_txt:
+                with open(f'{save_path}/all.conll', 'w') as all_txt:
+                    all_txt.write(train_txt.read())
+                    all_txt.write(test_txt.read())
+
     print('Finished downloading.')
 
 
@@ -96,7 +104,7 @@ if __name__ == '__main__':
             for tagger in taggers:
                 t = tagger(lang=lang)
                 output.write(f"CLASSIFIER: {tagger.__name__}\n")
-                t.train(f'./data/{lang}/train.conll')
+                t.train(f'./data/{lang}/all.conll')
                 acc = t.accuracy(f'./data/{lang}/test.conll')
                 output.write(f'ACCURACY: {acc}%\n')
             output.write('\n')

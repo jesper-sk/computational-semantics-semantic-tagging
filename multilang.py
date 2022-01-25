@@ -2,7 +2,9 @@ import os
 import sys
 import requests
 import argparse
+import pandas as pd
 from typing import List
+from datetime import datetime
 from baseline.DecisionTreeTagger import DecisionTreeTagger, \
                                         DecisionTreeTaggerOptions
 from baseline.SvmTagger import SvmClassifier
@@ -98,13 +100,15 @@ if __name__ == '__main__':
 
     download_data(langs)
     os.makedirs('./output/', exist_ok=True)
-    with open('./output/multilang_output.txt', 'w') as output:
-        for lang in langs:
-            output.write(f"LANGUAGE: {lang}\n")
-            for tagger in taggers:
-                t = tagger(lang=lang)
-                output.write(f"CLASSIFIER: {tagger.__name__}\n")
-                t.train(f'./data/{lang}/all.conll')
-                acc = t.accuracy(f'./data/{lang}/test.conll')
-                output.write(f'ACCURACY: {acc}%\n')
-            output.write('\n')
+    df = pd.DataFrame()
+    for lang in langs:
+        for tagger in taggers:
+            t = tagger(lang=lang)
+            t.train(f'./data/{lang}/all.conll')
+            acc = t.accuracy(f'./data/{lang}/test.conll')
+            df.at[lang, tagger.__name__] = acc
+
+    fname = f'./output/multilang_output_{datetime.now():%Y-%m-%d_%H%M}.csv'
+    df.to_csv(fname)
+    print(df)
+    print(f"Done. Output written to {fname}.")

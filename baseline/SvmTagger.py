@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.pipeline import make_pipeline
+from sklearn.model_selection import KFold
 from baseline.WordEmbeddingClassifier import WordEmbeddingClassifier
 
 import os
@@ -57,27 +58,38 @@ class SvmClassifier(WordEmbeddingClassifier):
                 print("No pretrained svm model found, training now...")
 
         _, data_in, data_out = self.prepare_data(input_data)
-        in_train, in_test, out_train, out_test = train_test_split(
-            data_in, data_out)
-
-        if self.__options.use_grid_search:
-            params = {
-                # TODO: params
-                'C': [0.1, 1, 10, 100, 1000],
-            }
-            clf = make_pipeline(
-                StandardScaler(),
-                GridSearchCV(self.__options.svm, params, n_jobs=4, refit=True))
-        else:
-            clf = make_pipeline(MinMaxScaler(feature_range=(-1,1)), self.__options.svm)
-
-        clf.fit(X=in_train, y=out_train)
+        kf = KFold(10, shuffle=True)
+        clf = make_pipeline(MinMaxScaler(feature_range=(-1,1)), self.__options.svm)
+        for k, (train, test) in enumerate(kf.split(data_in, data_out)):
+            clf.fit(data_in[train], data_out[train])
+            print(
+                "[fold {0}] score: {1:.5f}".format(
+                    k, clf.score(data_in[test], data_out[test])
+                )
+            )
         self.__model = clf
 
-        # Check accuracy on test set
-        out_predicted = self.__model.predict(in_test)
-        acc = accuracy_score(out_test, out_predicted)
-        print(f"This model has a training accuracy of {acc * 100:.2f}%.")
+        # in_train, in_test, out_train, out_test = train_test_split(
+        #     data_in, data_out)
+
+        # if self.__options.use_grid_search:
+        #     params = {
+        #         # TODO: params
+        #         'C': [0.1, 1, 10, 100, 1000],
+        #     }
+        #     clf = make_pipeline(
+        #         StandardScaler(),
+        #         GridSearchCV(self.__options.svm, params, n_jobs=4, refit=True))
+        # else:
+        #     clf = make_pipeline(MinMaxScaler(feature_range=(-1,1)), self.__options.svm)
+
+        # clf.fit(X=in_train, y=out_train)
+        # self.__model = clf
+
+        # # Check accuracy on test set
+        # out_predicted = self.__model.predict(in_test)
+        # acc = accuracy_score(out_test, out_predicted)
+        # print(f"This model has a training accuracy of {acc * 100:.2f}%.")
 
         # Save model to file
         os.makedirs('./models/', exist_ok=True)

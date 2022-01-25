@@ -4,9 +4,11 @@ from dataclasses import dataclass
 from sklearn import tree
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import KFold
 from baseline.WordEmbeddingClassifier import WordEmbeddingClassifier
 import os
 import pickle
+import numpy as np
 
 
 @dataclass
@@ -50,29 +52,16 @@ class DecisionTreeTagger(WordEmbeddingClassifier):
                     "No pretrained decision tree model found, training now...")
 
         _, data_in, data_out = self.prepare_data(input_data)
-        in_train, in_test, out_train, out_test = train_test_split(
-            data_in, data_out)
-
-        if self.__options.use_grid_search:
-            print("Starting grid search...")
-            params = {'max_depth': range(2, 20)}
-            dtree = GridSearchCV(tree.DecisionTreeClassifier(),
-                                 params,
-                                 n_jobs=4)
-            dtree.fit(X=in_train, y=out_train)
-            print(f"""Grid search finished.
-                  \nBest score: {dtree.best_score_}.
-                  \nBest parameters:{dtree.best_params_}""")
-            self.__model = dtree.best_estimator_
-        else:
-            dtree = tree.DecisionTreeClassifier()
-            dtree.fit(X=in_train, y=out_train)
-            self.__model = dtree
-
-        # Check accuracy on test set
-        out_predicted = self.__model.predict(in_test)
-        acc = accuracy_score(out_test, out_predicted)
-        print(f"This model has a training accuracy of {acc * 100:.2f}%.")
+        kf = KFold(10, shuffle=True)
+        dtree = tree.DecisionTreeClassifier()
+        for k, (train, test) in enumerate(kf.split(data_in, data_out)):
+            dtree.fit(data_in[train], data_out[train])
+            print(
+                "[fold {0}] score: {1:.5f}".format(
+                    k, dtree.score(data_in[test], data_out[test])
+                )
+            )
+        self.__model = dtree
 
         # Save model to file
         os.makedirs('./models/', exist_ok=True)

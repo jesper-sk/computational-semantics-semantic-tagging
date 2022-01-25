@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 from datetime import datetime
+from sklearn.model_selection import KFold
 import nltk
 import os
 import data
+import numpy as np
 
 
 @dataclass
@@ -16,9 +18,13 @@ class TrigramTagger:
         self.__model = None
 
     def train(self, input_path: str) -> None:
-        training_data = data.tnt_data(input_path)
+        training_data = np.array(data.tnt_data(input_path))
         tagger = nltk.tag.TnT()
-        tagger.train(training_data)
+        kf = KFold(10, shuffle=True)
+        for k, (train, test) in enumerate(kf.split(training_data)):
+            tagger.train(training_data[train])
+            print(f"[fold {k}] score: {tagger.accuracy(training_data[test])}")
+
         self.__model = tagger
 
     def accuracy(self, input_path):

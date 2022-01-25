@@ -2,6 +2,7 @@ import fasttext
 import fasttext.util
 import os
 import data
+import numpy as np
 
 
 class WordEmbeddingClassifier:
@@ -44,4 +45,4 @@ class WordEmbeddingClassifier:
         # because FastText doesn't have a vectorized way to do this (i.e. we
         # would ideally do self.__word_embedding[in_raw])
         in_vectors = [self.word_embedding[word] for word in in_raw]
-        return in_raw, in_vectors, out
+        return in_raw, np.array(in_vectors), np.array(out)

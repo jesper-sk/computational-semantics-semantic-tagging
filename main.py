@@ -8,6 +8,10 @@ from baseline.TrigramTagger import TrigramTagger
 from baseline.HiddenMarkovModel import HmmTagger
 from tagger.EnsembleTagger import EnsembleTagger
 from tagger.RNNTagger import RNNTagger
+from tagger.LSTMTagger import LSTMTagger
+from tagger.GRUTagger import GRUTagger
+from tagger.BiRNNTagger import BiRNNTagger
+from tagger.BiLSTMTagger import BiLSTMTagger
 
 
 def main(args):
@@ -27,6 +31,14 @@ def main(args):
         tagger = EnsembleTagger()
     elif args.classifier == 'rnn':
         tagger = RNNTagger()
+    elif args.classifier == 'lstm':
+        tagger = LSTMTagger()
+    elif args.classifier == 'gru':
+        tagger = GRUTagger()
+    elif args.classifier == 'birnn':
+        tagger = BiRNNTagger()
+    elif args.classifier == 'bilstm':
+        tagger = BiLSTMTagger()
 
     if args.training_data is not None:
         tagger.train(args.training_data)
@@ -53,8 +65,12 @@ if __name__ == "__main__":
                             TNT: Trigrams\'n\'Tags;
                             HMM: Hidden Markov Model;
                             RNN: Recurrent Neural Network;
-                            ENS: Ensemble (DT + SVM)''',
-                        choices=['dt', 'tnt', 'svm', 'hmm', 'rnn', 'ens'],
+                            ENS: Ensemble (DT + SVM);
+                            LSTM: Long Short Term Memory Neural Network;
+                            GRU: Gated Recurrant Unit Neural Network;
+                            BiRNN: Bidirectional Recurrant Neural Network;
+                            BiLSTM: Bidirectional Long Short Term Memory Neural Network''',
+                        choices=['dt', 'tnt', 'svm', 'hmm', 'rnn', 'ens', 'lstm', 'gru', 'birnn', 'bilstm'],
                         type=str.lower)
     parser.add_argument('-d',
                         '--data',

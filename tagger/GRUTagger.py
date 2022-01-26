@@ -7,15 +7,11 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
 from keras.models import Sequential
 from keras.layers import Embedding, GRU, Dense
-from keras import regularizers
 from keras.layers.wrappers import TimeDistributed
-from gensim.models import KeyedVectors
-from typing import List, Tuple
-from sklearn.model_selection import train_test_split, KFold
+from sklearn.model_selection import KFold
 import numpy as np
 from baseline.WordEmbeddingClassifier import WordEmbeddingClassifier
-from data import nn_data, dt_data
-import fasttext
+from util import dt_data
 
 ############
 # GRU Class

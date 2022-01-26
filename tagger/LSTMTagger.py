@@ -11,7 +11,7 @@ from keras.layers.wrappers import TimeDistributed
 from sklearn.model_selection import KFold
 import numpy as np
 from baseline.WordEmbeddingClassifier import WordEmbeddingClassifier
-from data import dt_data
+from util import dt_data
 
 ############
 # LSTM Class

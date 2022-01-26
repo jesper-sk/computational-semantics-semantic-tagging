@@ -3,7 +3,7 @@ from datetime import datetime
 from sklearn.model_selection import KFold
 import nltk
 import os
-import data
+import util
 import numpy as np
 
 
@@ -20,7 +20,7 @@ class TrigramTagger:
         self.__model = None
 
     def train(self, input_path: str) -> None:
-        training_data = np.array(data.tnt_data(input_path))
+        training_data = np.array(util.tnt_data(input_path))
         tagger = nltk.tag.TnT()
         kf = KFold(10, shuffle=True)
         for k, (train, test) in enumerate(kf.split(training_data)):
@@ -36,7 +36,7 @@ class TrigramTagger:
             return None
         else:
             input_filename = os.path.basename(input_path)
-            input_data = data.tnt_data(input_path)
+            input_data = util.tnt_data(input_path)
             acc = self.__model.accuracy(input_data)
             print(f'This model has an accuracy of {acc * 100:.2f}% ' +
                   f'on {input_filename}.')
@@ -51,7 +51,7 @@ class TrigramTagger:
         else:
             # For now, just take as input the original format. For actual use,
             # this function should take as input a list instead of a path.
-            input_data = data.tnt_data(input_path)
+            input_data = util.tnt_data(input_path)
             input_data_notags = [[word for (word, _) in sentence]
                                  for sentence in input_data]
             predictions = self.__model.tagdata(input_data_notags)

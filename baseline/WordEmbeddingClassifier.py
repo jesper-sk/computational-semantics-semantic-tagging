@@ -1,7 +1,7 @@
 import fasttext
 import fasttext.util
 import os
-import data
+import util
 import numpy as np
 
 
@@ -40,7 +40,7 @@ class WordEmbeddingClassifier:
     def prepare_data(self, input_data):
         """Transform a data set of words into vectors"""
 
-        in_raw, out = data.dt_data(input_data)
+        in_raw, out = util.dt_data(input_data)
         # Prepare the data by transforming words to vectors. This is slow
         # because FastText doesn't have a vectorized way to do this (i.e. we
         # would ideally do self.__word_embedding[in_raw])

@@ -19,8 +19,9 @@ usage: classify.py [-h] -l {en,nl,de,it} [-c {dt,svm,tnt,hmm,ens,rnn,lstm,gru,bi
 Find semantic tags for the Parallel Meaning Bank
 
 positional arguments:
-  data_path             Path to the data to classify, in the same format as the data used in Rik van Noorts GitHub 
-                        repository. When not provided, a model will be trained without classifying anything.
+  data_path             Path to the data to classify, in the same format as the data used in 
+                        Rik van Noorts GitHub repository. When not provided, a model will be 
+                        trained without classifying anything.
 
 optional arguments:
   -h, --help            show this help message and exit

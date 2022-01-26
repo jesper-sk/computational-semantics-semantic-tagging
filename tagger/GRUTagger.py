@@ -32,16 +32,6 @@ class GRUTagger(WordEmbeddingClassifier):
         self.__max_vec_length = None
         self.__y_num_classes = None
 
-    # def __get_word_embedding(self):
-    #     path_name = "models/GoogleNews-vectors-negative300.bin"
-    #     if os.path.exists("models/GoogleNews-vectors-negative300.bin"):
-    #         print("Using word2vec word embeddings...")
-    #         return path_name
-    #     else:
-    #         print(
-    #             "Word embeddings not found; running without embedding weights..."
-    #         )
-
     def __prepare_training_data(self, input_data):
         X, y = dt_data(input_data)
         X_vec, X_index, X_tokenizer = self.__vectorize(X)
@@ -77,9 +67,6 @@ class GRUTagger(WordEmbeddingClassifier):
                              truncating="post")
 
     def __word_embed(self, word_index, path=None):
-        # if path == None:
-        #     path = "models/GoogleNews-vectors-negative300.bin"
-        # word2vec = KeyedVectors.load_word2vec_format(path, binary=True)
         EMBEDDING_SIZE = 300
         VOCABULARY_SIZE = len(word_index) + 1
         embedding_weights = np.zeros((VOCABULARY_SIZE, EMBEDDING_SIZE))
@@ -109,12 +96,17 @@ class GRUTagger(WordEmbeddingClassifier):
                       input_length=MAX_SEQ_LENGTH,
                       weights=[embedding_weights],
                       trainable=True))
-        gru.add(GRU(64, kernel_regularizer = 'l2', activity_regularizer = 'l2', return_sequences=True))
-        gru.add(TimeDistributed(Dense(NUM_CLASSES,
-                                      activation="softmax",
-                                      kernel_regularizer = 'l2',
-                                      activity_regularizer = 'l2'
-                                      )))
+        gru.add(
+            GRU(64,
+                kernel_regularizer='l2',
+                activity_regularizer='l2',
+                return_sequences=True))
+        gru.add(
+            TimeDistributed(
+                Dense(NUM_CLASSES,
+                      activation="softmax",
+                      kernel_regularizer='l2',
+                      activity_regularizer='l2')))
         gru.compile(loss="categorical_crossentropy",
                     optimizer="adam",
                     metrics=["acc"])
@@ -141,21 +133,26 @@ class GRUTagger(WordEmbeddingClassifier):
                       input_length=MAX_SEQ_LENGTH,
                       weights=[embedding_weights],
                       trainable=True))
-        gru.add(GRU(64, kernel_regularizer = 'l2', activity_regularizer = 'l2', return_sequences=True))
-        gru.add(TimeDistributed(Dense(NUM_CLASSES,
-                                      activation="softmax",
-                                      kernel_regularizer = 'l2',
-                                      activity_regularizer = 'l2'
-                                      )))
+        gru.add(
+            GRU(64,
+                kernel_regularizer='l2',
+                activity_regularizer='l2',
+                return_sequences=True))
+        gru.add(
+            TimeDistributed(
+                Dense(NUM_CLASSES,
+                      activation="softmax",
+                      kernel_regularizer='l2',
+                      activity_regularizer='l2')))
         gru.compile(loss="categorical_crossentropy",
                     optimizer="adam",
                     metrics=["acc"])
 
         # Train GRU model
-        kf = KFold(10, shuffle = True)
+        kf = KFold(10, shuffle=True)
         for k, (train, test) in enumerate(kf.split(X, y)):
-            gru.fit(X[train], y[train], batch_size = 128, epochs = 10)
-            loss, accuracy = gru.evaluate(X[test], y[test], verbose = False)
+            gru.fit(X[train], y[train], batch_size=128, epochs=10)
+            loss, accuracy = gru.evaluate(X[test], y[test], verbose=False)
             print(f"[fold{k}] score : {accuracy:.5f}")
         self.__model = gru
 
@@ -186,12 +183,14 @@ class GRUTagger(WordEmbeddingClassifier):
 # Test
 #######
 
+
 def printtags():
     for i in range(10):
         print("-------------")
         print(i, ":")
         print(sentences[i])
         print(tags[i])
+
 
 def test():
     gru = GRUTagger()
@@ -200,4 +199,3 @@ def test():
     gru.train(input_data)
     gru.accuracy(test_data)
     sentences, tags = gru.classify(test_data)
-

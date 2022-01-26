@@ -8,13 +8,10 @@ from keras.utils.np_utils import to_categorical
 from keras.models import Sequential
 from keras.layers import Embedding, LSTM, Dense
 from keras.layers.wrappers import TimeDistributed
-from gensim.models import KeyedVectors
-from typing import List, Tuple
-from sklearn.model_selection import train_test_split, KFold
+from sklearn.model_selection import KFold
 import numpy as np
 from baseline.WordEmbeddingClassifier import WordEmbeddingClassifier
-from data import nn_data, dt_data
-import fasttext
+from data import dt_data
 
 ############
 # LSTM Class
@@ -30,16 +27,6 @@ class LSTMTagger(WordEmbeddingClassifier):
         self.__model = None
         self.__max_vec_length = None
         self.__y_num_classes = None
-
-    # def __get_word_embedding(self):
-    #     path_name = "models/GoogleNews-vectors-negative300.bin"
-    #     if os.path.exists("models/GoogleNews-vectors-negative300.bin"):
-    #         print("Using word2vec word embeddings...")
-    #         return path_name
-    #     else:
-    #         print(
-    #             "Word embeddings not found; running without embedding weights..."
-    #         )
 
     def __prepare_training_data(self, input_data):
         X, y = dt_data(input_data)
@@ -108,20 +95,26 @@ class LSTMTagger(WordEmbeddingClassifier):
                       input_length=MAX_SEQ_LENGTH,
                       weights=[embedding_weights],
                       trainable=True))
-        lstm.add(LSTM(64, kernel_regularizer = 'l2', activity_regularizer = 'l2', return_sequences=True))
-        lstm.add(TimeDistributed(Dense(NUM_CLASSES,
-                                       kernel_regularizer = 'l2',
-                                       activity_regularizer = 'l2',
-                                       activation="softmax")))
+        lstm.add(
+            LSTM(64,
+                 kernel_regularizer='l2',
+                 activity_regularizer='l2',
+                 return_sequences=True))
+        lstm.add(
+            TimeDistributed(
+                Dense(NUM_CLASSES,
+                      kernel_regularizer='l2',
+                      activity_regularizer='l2',
+                      activation="softmax")))
         lstm.compile(loss="categorical_crossentropy",
-                    optimizer="adam",
-                    metrics=["acc"])
+                     optimizer="adam",
+                     metrics=["acc"])
 
         # Train LSTM model
-        kf = KFold(10, shuffle = True)
+        kf = KFold(10, shuffle=True)
         for k, (train, test) in enumerate(kf.split(X, y)):
-            lstm.fit(X[train], y[train], batch_size = 128, epochs = 10)
-            loss, accuracy = lstm.evaluate(X[test], y[test], verbose = False)
+            lstm.fit(X[train], y[train], batch_size=128, epochs=10)
+            loss, accuracy = lstm.evaluate(X[test], y[test], verbose=False)
             print(f"[fold{k}] score : {accuracy:.5f}")
         self.__model = lstm
 
@@ -143,19 +136,24 @@ class LSTMTagger(WordEmbeddingClassifier):
                       input_length=MAX_SEQ_LENGTH,
                       weights=[embedding_weights],
                       trainable=True))
-        lstm.add(LSTM(64, kernel_regularizer = 'l2', activity_regularizer = 'l2', return_sequences=True))
-        lstm.add(TimeDistributed(Dense(NUM_CLASSES,
-                                       kernel_regularizer = 'l2',
-                                       activity_regularizer = 'l2',
-                                       activation="softmax")))
+        lstm.add(
+            LSTM(64,
+                 kernel_regularizer='l2',
+                 activity_regularizer='l2',
+                 return_sequences=True))
+        lstm.add(
+            TimeDistributed(
+                Dense(NUM_CLASSES,
+                      kernel_regularizer='l2',
+                      activity_regularizer='l2',
+                      activation="softmax")))
         lstm.compile(loss="categorical_crossentropy",
-                    optimizer="adam",
-                    metrics=["acc"])
+                     optimizer="adam",
+                     metrics=["acc"])
 
         # Train LSTM model
         lstm.fit(X, y, batch_size=128, epochs=10)
         self.__model = lstm
-
 
     def accuracy(self, input_data):
         if self.__model is None:
@@ -183,6 +181,7 @@ class LSTMTagger(WordEmbeddingClassifier):
 #######
 # Test
 #######
+
 
 def test():
     lstm = LSTMTagger()

@@ -67,6 +67,7 @@ def tnt_data(path) -> List[List[Tuple[str, str]]]:
 
     return data
 
+
 def nn_data(path):
     """
     Data formatted for neural networks
@@ -92,6 +93,7 @@ def nn_data(path):
             sentence.append(fields[1])
             tags.append(fields[3])
     return X, y
+
 
 def test(path):
     with open(path, 'r') as file:

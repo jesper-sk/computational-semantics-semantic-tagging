@@ -13,7 +13,9 @@ class TrigramTaggerOptions():
 
 
 class HmmTagger:
-    def __init__(self, options: TrigramTaggerOptions = None, lang: str = None) -> None:
+    def __init__(self,
+                 options: TrigramTaggerOptions = None,
+                 lang: str = None) -> None:
         self.__options = options or TrigramTaggerOptions()
         self.__model = None
 
@@ -37,7 +39,8 @@ class HmmTagger:
             input_filename = os.path.basename(input_path)
             input_data = data.tnt_data(input_path)
             acc = self.__model.accuracy(input_data)
-            print(f"This model has an accuracy of {acc * 100:.2f}% on {input_filename}.")
+            print(f'This model has an accuracy of {acc * 100:.2f}% ' +
+                  f'on {input_filename}.')
             return acc * 100
 
     def classify(self, input_path):
@@ -55,7 +58,8 @@ class HmmTagger:
             predictions = [self.__model.tag(lst) for lst in input_data_notags]
             input_filename = os.path.basename(input_path)
             os.makedirs('./output/', exist_ok=True)
-            file_name = f'./output/tnt_{input_filename}_{datetime.now():%Y-%m-%d_%H%M}.tsv'
+            file_name = f'./output/hmm_{input_filename}_' + \
+                        f'{datetime.now():%Y-%m-%d_%H%M}.tsv'
             with open(file_name, 'w') as f:
                 f.write("word\tpredicted tag\n")
                 for sentence in predictions:

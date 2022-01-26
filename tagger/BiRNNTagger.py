@@ -7,15 +7,11 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
 from keras.models import Sequential
 from keras.layers import Embedding, SimpleRNN, Dense, Bidirectional
-from keras import regularizers
 from keras.layers.wrappers import TimeDistributed
-from gensim.models import KeyedVectors
-from typing import List, Tuple
-from sklearn.model_selection import train_test_split, KFold
+from sklearn.model_selection import KFold
 import numpy as np
 from baseline.WordEmbeddingClassifier import WordEmbeddingClassifier
-from data import nn_data, dt_data
-import fasttext
+from data import dt_data
 
 ############
 # BiRNN Class
@@ -31,16 +27,6 @@ class BiRNNTagger(WordEmbeddingClassifier):
         self.__model = None
         self.__max_vec_length = None
         self.__y_num_classes = None
-
-    # def __get_word_embedding(self):
-    #     path_name = "models/GoogleNews-vectors-negative300.bin"
-    #     if os.path.exists("models/GoogleNews-vectors-negative300.bin"):
-    #         print("Using word2vec word embeddings...")
-    #         return path_name
-    #     else:
-    #         print(
-    #             "Word embeddings not found; running without embedding weights..."
-    #         )
 
     def __prepare_training_data(self, input_data):
         X, y = dt_data(input_data)
@@ -77,9 +63,6 @@ class BiRNNTagger(WordEmbeddingClassifier):
                              truncating="post")
 
     def __word_embed(self, word_index, path=None):
-        # if path == None:
-        #     path = "models/GoogleNews-vectors-negative300.bin"
-        # word2vec = KeyedVectors.load_word2vec_format(path, binary=True)
         EMBEDDING_SIZE = 300
         VOCABULARY_SIZE = len(word_index) + 1
         embedding_weights = np.zeros((VOCABULARY_SIZE, EMBEDDING_SIZE))
@@ -109,15 +92,21 @@ class BiRNNTagger(WordEmbeddingClassifier):
                       input_length=MAX_SEQ_LENGTH,
                       weights=[embedding_weights],
                       trainable=True))
-        brnn.add(Bidirectional(SimpleRNN(64, kernel_regularizer = 'l2', activity_regularizer = 'l2', return_sequences=True)))
-        brnn.add(TimeDistributed(Dense(NUM_CLASSES,
-                                      activation="softmax",
-                                      kernel_regularizer = 'l2',
-                                      activity_regularizer = 'l2'
-                                      )))
+        brnn.add(
+            Bidirectional(
+                SimpleRNN(64,
+                          kernel_regularizer='l2',
+                          activity_regularizer='l2',
+                          return_sequences=True)))
+        brnn.add(
+            TimeDistributed(
+                Dense(NUM_CLASSES,
+                      activation="softmax",
+                      kernel_regularizer='l2',
+                      activity_regularizer='l2')))
         brnn.compile(loss="categorical_crossentropy",
-                    optimizer="adam",
-                    metrics=["acc"])
+                     optimizer="adam",
+                     metrics=["acc"])
 
         # Train BiRNN model
         brnn.fit(X, y, batch_size=128, epochs=10)
@@ -141,21 +130,27 @@ class BiRNNTagger(WordEmbeddingClassifier):
                       input_length=MAX_SEQ_LENGTH,
                       weights=[embedding_weights],
                       trainable=True))
-        brnn.add(Bidirectional(SimpleRNN(64, kernel_regularizer = 'l2', activity_regularizer = 'l2', return_sequences=True)))
-        brnn.add(TimeDistributed(Dense(NUM_CLASSES,
-                                      activation="softmax",
-                                      kernel_regularizer = 'l2',
-                                      activity_regularizer = 'l2'
-                                      )))
+        brnn.add(
+            Bidirectional(
+                SimpleRNN(64,
+                          kernel_regularizer='l2',
+                          activity_regularizer='l2',
+                          return_sequences=True)))
+        brnn.add(
+            TimeDistributed(
+                Dense(NUM_CLASSES,
+                      activation="softmax",
+                      kernel_regularizer='l2',
+                      activity_regularizer='l2')))
         brnn.compile(loss="categorical_crossentropy",
-                    optimizer="adam",
-                    metrics=["acc"])
+                     optimizer="adam",
+                     metrics=["acc"])
 
         # Train BiRNN model
-        kf = KFold(10, shuffle = True)
+        kf = KFold(10, shuffle=True)
         for k, (train, test) in enumerate(kf.split(X, y)):
-            brnn.fit(X[train], y[train], batch_size = 128, epochs = 10)
-            loss, accuracy = brnn.evaluate(X[test], y[test], verbose = False)
+            brnn.fit(X[train], y[train], batch_size=128, epochs=10)
+            loss, accuracy = brnn.evaluate(X[test], y[test], verbose=False)
             print(f"[fold{k}] score : {accuracy:.5f}")
         self.__model = brnn
 
@@ -186,12 +181,14 @@ class BiRNNTagger(WordEmbeddingClassifier):
 # Test
 #######
 
+
 def printtags():
     for i in range(10):
         print("-------------")
         print(i, ":")
         print(sentences[i])
         print(tags[i])
+
 
 def test():
     brnn = BiRNNTagger()
@@ -200,4 +197,3 @@ def test():
     brnn.train(input_data)
     brnn.accuracy(test_data)
     sentences, tags = brnn.classify(test_data)
-

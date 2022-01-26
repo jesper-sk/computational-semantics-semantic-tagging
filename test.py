@@ -3,8 +3,7 @@ import argparse
 import pandas as pd
 from typing import List
 from datetime import datetime
-from download_data import download_data
-from util import classifier_options
+from util import classifier_options, download_data
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(

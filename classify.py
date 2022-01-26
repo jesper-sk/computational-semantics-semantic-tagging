@@ -1,7 +1,6 @@
 import argparse
 import sys
-from download_data import download_data
-from util import classifier_options
+from util import classifier_options, download_data
 
 
 def main(args):

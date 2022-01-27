@@ -2,7 +2,7 @@ from typing import List, Tuple
 
 
 def read_file(path):
-    with open(path, 'r') as file:
+    with open(path, 'r', encoding="utf8") as file:
         lines = file.readlines()
 
     labels = [

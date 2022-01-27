@@ -17,7 +17,7 @@ def count(dbs):
             lang_sems += sems
             all_sems += sems
             print(f'\t{file}\t--> {len(data)} / {len(set(sems))}')
-        print(f"n.sems --> f{len(set(lang_sems))}")
+        print(f"n.sems --> {len(set(lang_sems))}\n")
 
     plt.hist(all_sems)
     plt.show()

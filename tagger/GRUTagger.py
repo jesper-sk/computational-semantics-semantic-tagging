@@ -11,7 +11,7 @@ from keras.layers.wrappers import TimeDistributed
 from sklearn.model_selection import KFold
 import numpy as np
 from baseline.WordEmbeddingClassifier import WordEmbeddingClassifier
-from util import dt_data
+from data import dt_data
 
 ############
 # GRU Class
@@ -108,7 +108,7 @@ class GRUTagger(WordEmbeddingClassifier):
                     metrics=["acc"])
 
         # Train GRU model
-        gru.fit(X, y, batch_size=128, epochs=10)
+        gru.fit(X, y, batch_size=128, epochs=5)
         self.__model = gru
 
     def train(self, input_data):
@@ -147,7 +147,7 @@ class GRUTagger(WordEmbeddingClassifier):
         # Train GRU model
         kf = KFold(10, shuffle=True)
         for k, (train, test) in enumerate(kf.split(X, y)):
-            gru.fit(X[train], y[train], batch_size=128, epochs=10)
+            gru.fit(X[train], y[train], batch_size=128, epochs=5)
             loss, accuracy = gru.evaluate(X[test], y[test], verbose=False)
             print(f"[fold{k}] score : {accuracy:.5f}")
         self.__model = gru

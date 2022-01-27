@@ -1,11 +1,22 @@
 import os
 import argparse
 import pandas as pd
+
+import tensorflow as tf
+
 from typing import List
 from datetime import datetime
 from util import classifier_options, download_data
 
 if __name__ == '__main__':
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    if gpus:
+        try:
+            tf.config.experimental.set_virtual_device_configuration(
+                gpus[0],[tf.config.experimental.VirtualDeviceConfiguration(memory_limit=6611)])
+        except RuntimeError as e:
+            print(e)
+
     parser = argparse.ArgumentParser(
         description='Run any of the parsers on any of the languages in ' +
         'the PMB data set.')

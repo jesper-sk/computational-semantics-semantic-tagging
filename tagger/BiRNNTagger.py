@@ -11,7 +11,7 @@ from keras.layers.wrappers import TimeDistributed
 from sklearn.model_selection import KFold
 import numpy as np
 from baseline.WordEmbeddingClassifier import WordEmbeddingClassifier
-from util import dt_data
+from data import dt_data
 
 ############
 # BiRNN Class
@@ -109,7 +109,7 @@ class BiRNNTagger(WordEmbeddingClassifier):
                      metrics=["acc"])
 
         # Train BiRNN model
-        brnn.fit(X, y, batch_size=128, epochs=10)
+        brnn.fit(X, y, batch_size=128, epochs=5)
         self.__model = brnn
 
     def train(self, input_data):
@@ -149,7 +149,7 @@ class BiRNNTagger(WordEmbeddingClassifier):
         # Train BiRNN model
         kf = KFold(10, shuffle=True)
         for k, (train, test) in enumerate(kf.split(X, y)):
-            brnn.fit(X[train], y[train], batch_size=128, epochs=10)
+            brnn.fit(X[train], y[train], batch_size=128, epochs=5)
             loss, accuracy = brnn.evaluate(X[test], y[test], verbose=False)
             print(f"[fold{k}] score : {accuracy:.5f}")
         self.__model = brnn

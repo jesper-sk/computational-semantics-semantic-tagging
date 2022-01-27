@@ -11,7 +11,7 @@ from keras.layers.wrappers import TimeDistributed
 from sklearn.model_selection import KFold
 import numpy as np
 from baseline.WordEmbeddingClassifier import WordEmbeddingClassifier
-from util import dt_data
+from data import dt_data
 
 ############
 # RNN Class
@@ -108,7 +108,7 @@ class RNNTagger(WordEmbeddingClassifier):
                     metrics=["acc"])
 
         # Train RNN model
-        rnn.fit(X, y, batch_size=128, epochs=10)
+        rnn.fit(X, y, batch_size=128, epochs=5)
         self.__model = rnn
 
     def train(self, input_data):
@@ -147,7 +147,7 @@ class RNNTagger(WordEmbeddingClassifier):
         # Train RNN model
         kf = KFold(10, shuffle=True)
         for k, (train, test) in enumerate(kf.split(X, y)):
-            rnn.fit(X[train], y[train], batch_size=128, epochs=10)
+            rnn.fit(X[train], y[train], batch_size=128, epochs=5)
             loss, accuracy = rnn.evaluate(X[test], y[test], verbose=False)
             print(f"[fold{k}] score : {accuracy:.5f}")
         self.__model = rnn

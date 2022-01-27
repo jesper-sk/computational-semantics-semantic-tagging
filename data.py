@@ -33,7 +33,7 @@ def dt_data(path) -> Tuple[List[str], List[str]]:
     """
     X = []  # data
     y = []  # target
-    with open(path) as dataset:
+    with open(path, encoding="utf-8") as dataset:
         for row in dataset:
             if row.startswith(('#', '\n')):
                 continue
@@ -48,7 +48,7 @@ def tnt_data(path) -> List[List[Tuple[str, str]]]:
     """Data formatted for the TnT tagger.
     Returns a list of tagged sentences [[(word, tag)]]"""
     data = []
-    with open(path) as dataset:
+    with open(path, encoding="utf-8") as dataset:
         sentence = []
         for row in dataset:
             # Ignore comments

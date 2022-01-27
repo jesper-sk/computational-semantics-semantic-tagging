@@ -55,9 +55,9 @@ def download_data(langs: List[str],
                         file.write(resp.text)
 
         # Create merged train/dev set
-        with open(f'{save_path}/all.conll', 'w') as all_txt:
-            with open(f'{save_path}/train.conll', 'r') as train_txt,\
-                 open(f'{save_path}/dev.conll', 'r') as test_txt:
+        with open(f'{save_path}/all.conll', 'w', encoding="utf-8") as all_txt:
+            with open(f'{save_path}/train.conll', 'r', encoding="utf-8") as train_txt,\
+                 open(f'{save_path}/dev.conll', 'r', encoding="utf-8") as test_txt:
                 all_txt.write(train_txt.read())
                 all_txt.write(test_txt.read())
             # Try to attach eval.conll if it exists (doesn't for all languages)
@@ -75,7 +75,7 @@ def dt_data(path) -> Tuple[List[str], List[str]]:
     """
     X = []  # data
     y = []  # target
-    with open(path) as dataset:
+    with open(path, encoding="utf-8") as dataset:
         for row in dataset:
             if row.startswith(('#', '\n')):
                 continue
@@ -90,7 +90,7 @@ def tnt_data(path) -> List[List[Tuple[str, str]]]:
     """Data formatted for the TnT tagger.
     Returns a list of tagged sentences [[(word, tag)]]"""
     data = []
-    with open(path) as dataset:
+    with open(path, encoding="utf-8") as dataset:
         sentence = []
         for row in dataset:
             # Ignore comments

@@ -2,8 +2,8 @@ from datetime import datetime
 from typing import List
 from dataclasses import dataclass
 from sklearn import tree
-from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import KFold
 from baseline.WordEmbeddingClassifier import WordEmbeddingClassifier
 import os
 import pickle
@@ -23,7 +23,9 @@ class DecisionTreeTaggerOptions:
 class DecisionTreeTagger(WordEmbeddingClassifier):
     """A semantic tagger using decision trees
     """
-    def __init__(self, options: DecisionTreeTaggerOptions = None, lang: str = 'en') -> None:
+    def __init__(self,
+                 options: DecisionTreeTaggerOptions = None,
+                 lang: str = 'en') -> None:
         super().__init__(lang=lang)
         self.__options = options or DecisionTreeTaggerOptions(
         )  # take defaults if no options given
@@ -32,7 +34,8 @@ class DecisionTreeTagger(WordEmbeddingClassifier):
     def load_model(self):
         """Load a pretrained model"""
         if os.path.exists(f'./models/dt_model_{self.lang}.pkl'):
-            with open(f'./models/dt_model_{self.lang}.pkl', 'rb') as model_pickle:
+            with open(f'./models/dt_model_{self.lang}.pkl',
+                      'rb') as model_pickle:
                 self.__model = pickle.load(model_pickle)
             return True
         return False
@@ -42,37 +45,22 @@ class DecisionTreeTagger(WordEmbeddingClassifier):
         """
         if self.__options.load_pretrained:
             if self.load_model():
-                print("""Found pretrained decision tree model.
-                Skipping training (use --force-train to force training).""")
+                print(
+                    'Found pretrained decision tree model. ' +
+                    'Skipping training (use --force-train to force training).')
                 return
             else:
                 print(
                     "No pretrained decision tree model found, training now...")
 
         _, data_in, data_out = self.prepare_data(input_data)
-        in_train, in_test, out_train, out_test = train_test_split(
-            data_in, data_out)
-
-        if self.__options.use_grid_search:
-            print("Starting grid search...")
-            params = {'max_depth': range(2, 20)}
-            dtree = GridSearchCV(tree.DecisionTreeClassifier(),
-                                 params,
-                                 n_jobs=4)
-            dtree.fit(X=in_train, y=out_train)
-            print(f"""Grid search finished.
-                  \nBest score: {dtree.best_score_}.
-                  \nBest parameters:{dtree.best_params_}""")
-            self.__model = dtree.best_estimator_
-        else:
-            dtree = tree.DecisionTreeClassifier()
-            dtree.fit(X=in_train, y=out_train)
-            self.__model = dtree
-
-        # Check accuracy on test set
-        out_predicted = self.__model.predict(in_test)
-        acc = accuracy_score(out_test, out_predicted)
-        print(f"This model has a training accuracy of {acc * 100:.2f}%.")
+        kf = KFold(10, shuffle=True)
+        dtree = tree.DecisionTreeClassifier()
+        for k, (train, test) in enumerate(kf.split(data_in, data_out)):
+            dtree.fit(data_in[train], data_out[train])
+            print("[fold {0}] score: {1:.5f}".format(
+                k, dtree.score(data_in[test], data_out[test])))
+        self.__model = dtree
 
         # Save model to file
         os.makedirs('./models/', exist_ok=True)
@@ -89,9 +77,9 @@ class DecisionTreeTagger(WordEmbeddingClassifier):
             predictions = self.__model.predict(data_vectors)
             acc = accuracy_score(true_tags, predictions)
             input_filename = os.path.basename(input_path)
-            print(f"""This model has an accuracy of {acc * 100:.2f}% on
-            {input_filename}.""")
-            
+            print(f'This model has an accuracy of {acc * 100:.2f}% ' +
+                  f'on {input_filename}.')
+
             return acc * 100
 
     def classify(self, input_path) -> List:
@@ -105,7 +93,8 @@ class DecisionTreeTagger(WordEmbeddingClassifier):
             predictions = self.__model.predict(data_vectors)
             input_filename = os.path.basename(input_path)
             os.makedirs('./output/', exist_ok=True)
-            file_name = f'./output/dt_{input_filename}_{datetime.now():%Y-%m-%d_%H%M}.tsv'
+            file_name = f'./output/dt_{input_filename}_' + \
+                        f'{datetime.now():%Y-%m-%d_%H%M}.tsv'
             with open(file_name, 'w') as f:
                 f.write("word\tpredicted tag\n")
                 for (d_input, d_output) in zip(words, predictions):

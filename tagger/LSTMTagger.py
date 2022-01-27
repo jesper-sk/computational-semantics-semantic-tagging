@@ -6,7 +6,7 @@ from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
 from keras.models import Sequential
-from keras.layers import Embedding, SimpleRNN, Dense
+from keras.layers import Embedding, LSTM, Dense
 from keras.layers.wrappers import TimeDistributed
 from sklearn.model_selection import KFold
 import numpy as np
@@ -14,11 +14,11 @@ from baseline.WordEmbeddingClassifier import WordEmbeddingClassifier
 from util import dt_data
 
 ############
-# RNN Class
+# LSTM Class
 ############
 
 
-class RNNTagger(WordEmbeddingClassifier):
+class LSTMTagger(WordEmbeddingClassifier):
     """
     A semantic tagger using a recurrant neural network
     """
@@ -63,6 +63,9 @@ class RNNTagger(WordEmbeddingClassifier):
                              truncating="post")
 
     def __word_embed(self, word_index, path=None):
+        # if path == None:
+        #     path = "models/GoogleNews-vectors-negative300.bin"
+        # word2vec = KeyedVectors.load_word2vec_format(path, binary=True)
         EMBEDDING_SIZE = 300
         VOCABULARY_SIZE = len(word_index) + 1
         embedding_weights = np.zeros((VOCABULARY_SIZE, EMBEDDING_SIZE))
@@ -74,87 +77,87 @@ class RNNTagger(WordEmbeddingClassifier):
                 pass
         return embedding_weights
 
-    def normal_train(self, input_data):
-        X, y, X_index = self.__prepare_training_data(input_data)
-        embedding_weights = self.__word_embed(X_index)
-
-        # Setting constants for RNN training
-        EMBEDDING_SIZE = 300
-        VOCABULARY_SIZE = len(X_index) + 1
-        MAX_SEQ_LENGTH = max([len(i) for i in X])
-        NUM_CLASSES = self.__y_num_classes
-
-        # RNN Instantion
-        rnn = Sequential()
-        rnn.add(
-            Embedding(input_dim=VOCABULARY_SIZE,
-                      output_dim=EMBEDDING_SIZE,
-                      input_length=MAX_SEQ_LENGTH,
-                      weights=[embedding_weights],
-                      trainable=True))
-        rnn.add(
-            SimpleRNN(64,
-                      kernel_regularizer='l2',
-                      activity_regularizer='l2',
-                      return_sequences=True))
-        rnn.add(
-            TimeDistributed(
-                Dense(NUM_CLASSES,
-                      activation="softmax",
-                      kernel_regularizer='l2',
-                      activity_regularizer='l2')))
-        rnn.compile(loss="categorical_crossentropy",
-                    optimizer="adam",
-                    metrics=["acc"])
-
-        # Train RNN model
-        rnn.fit(X, y, batch_size=128, epochs=10)
-        self.__model = rnn
-
     def train(self, input_data):
         X, y, X_index = self.__prepare_training_data(input_data)
         embedding_weights = self.__word_embed(X_index)
 
-        # Setting constants for RNN training
+        # Setting constants for LSTM training
         EMBEDDING_SIZE = 300
         VOCABULARY_SIZE = len(X_index) + 1
         MAX_SEQ_LENGTH = max([len(i) for i in X])
         NUM_CLASSES = self.__y_num_classes
 
-        # RNN Instantion
-        rnn = Sequential()
-        rnn.add(
+        # LSTM Instantion
+        lstm = Sequential()
+        lstm.add(
             Embedding(input_dim=VOCABULARY_SIZE,
                       output_dim=EMBEDDING_SIZE,
                       input_length=MAX_SEQ_LENGTH,
                       weights=[embedding_weights],
                       trainable=True))
-        rnn.add(
-            SimpleRNN(64,
-                      kernel_regularizer='l2',
-                      activity_regularizer='l2',
-                      return_sequences=True))
-        rnn.add(
+        lstm.add(
+            LSTM(64,
+                 kernel_regularizer='l2',
+                 activity_regularizer='l2',
+                 return_sequences=True))
+        lstm.add(
             TimeDistributed(
                 Dense(NUM_CLASSES,
-                      activation="softmax",
                       kernel_regularizer='l2',
-                      activity_regularizer='l2')))
-        rnn.compile(loss="categorical_crossentropy",
-                    optimizer="adam",
-                    metrics=["acc"])
+                      activity_regularizer='l2',
+                      activation="softmax")))
+        lstm.compile(loss="categorical_crossentropy",
+                     optimizer="adam",
+                     metrics=["acc"])
 
-        # Train RNN model
+        # Train LSTM model
         kf = KFold(10, shuffle=True)
         for k, (train, test) in enumerate(kf.split(X, y)):
-            rnn.fit(X[train], y[train], batch_size=128, epochs=10)
-            loss, accuracy = rnn.evaluate(X[test], y[test], verbose=False)
+            lstm.fit(X[train], y[train], batch_size=128, epochs=10)
+            loss, accuracy = lstm.evaluate(X[test], y[test], verbose=False)
             print(f"[fold{k}] score : {accuracy:.5f}")
-        self.__model = rnn
+        self.__model = lstm
+
+    def normal_train(self, input_data):
+        X, y, X_index = self.__prepare_training_data(input_data)
+        embedding_weights = self.__word_embed(X_index)
+
+        # Setting constants for LSTM training
+        EMBEDDING_SIZE = 300
+        VOCABULARY_SIZE = len(X_index) + 1
+        MAX_SEQ_LENGTH = max([len(i) for i in X])
+        NUM_CLASSES = self.__y_num_classes
+
+        # LSTM Instantion
+        lstm = Sequential()
+        lstm.add(
+            Embedding(input_dim=VOCABULARY_SIZE,
+                      output_dim=EMBEDDING_SIZE,
+                      input_length=MAX_SEQ_LENGTH,
+                      weights=[embedding_weights],
+                      trainable=True))
+        lstm.add(
+            LSTM(64,
+                 kernel_regularizer='l2',
+                 activity_regularizer='l2',
+                 return_sequences=True))
+        lstm.add(
+            TimeDistributed(
+                Dense(NUM_CLASSES,
+                      kernel_regularizer='l2',
+                      activity_regularizer='l2',
+                      activation="softmax")))
+        lstm.compile(loss="categorical_crossentropy",
+                     optimizer="adam",
+                     metrics=["acc"])
+
+        # Train LSTM model
+        lstm.fit(X, y, batch_size=128, epochs=10)
+        self.__model = lstm
 
     def accuracy(self, input_data):
         if self.__model is None:
-            print("Please train the RNN first.")
+            print("Please train the LSTM first.")
             return None
         else:
             X_test, y_test, _, _ = self.__prepare_test_data(input_data)
@@ -164,7 +167,7 @@ class RNNTagger(WordEmbeddingClassifier):
 
     def classify(self, input_data):
         if self.__model is None:
-            print("Please train the RNN first.")
+            print("Please train the LSTM first.")
         else:
             X_test, y_test, X_tokenizer, y_tokenizer = self.__prepare_test_data(
                 input_data)
@@ -180,18 +183,10 @@ class RNNTagger(WordEmbeddingClassifier):
 #######
 
 
-def printtags():
-    for i in range(10):
-        print("-------------")
-        print(i, ":")
-        print(sentences[i])
-        print(tags[i])
-
-
 def test():
-    rnn = RNNTagger()
+    lstm = LSTMTagger()
     input_data = "train.conll"
     test_data = "test.conll"
-    rnn.train(input_data)
-    rnn.accuracy(test_data)
-    sentences, tags = rnn.classify(test_data)
+    lstm.train(input_data)
+    lstm.accuracy(test_data)
+    sentences, tags = lstm.classify(test_data)

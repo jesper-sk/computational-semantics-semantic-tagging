@@ -6,7 +6,7 @@ from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
 from keras.models import Sequential
-from keras.layers import Embedding, SimpleRNN, Dense
+from keras.layers import Embedding, SimpleRNN, Dense, Bidirectional
 from keras.layers.wrappers import TimeDistributed
 from sklearn.model_selection import KFold
 import numpy as np
@@ -14,11 +14,11 @@ from baseline.WordEmbeddingClassifier import WordEmbeddingClassifier
 from util import dt_data
 
 ############
-# RNN Class
+# BiRNN Class
 ############
 
 
-class RNNTagger(WordEmbeddingClassifier):
+class BiRNNTagger(WordEmbeddingClassifier):
     """
     A semantic tagger using a recurrant neural network
     """
@@ -78,83 +78,85 @@ class RNNTagger(WordEmbeddingClassifier):
         X, y, X_index = self.__prepare_training_data(input_data)
         embedding_weights = self.__word_embed(X_index)
 
-        # Setting constants for RNN training
+        # Setting constants for BiRNN training
         EMBEDDING_SIZE = 300
         VOCABULARY_SIZE = len(X_index) + 1
         MAX_SEQ_LENGTH = max([len(i) for i in X])
         NUM_CLASSES = self.__y_num_classes
 
-        # RNN Instantion
-        rnn = Sequential()
-        rnn.add(
+        # BiRNN Instantion
+        brnn = Sequential()
+        brnn.add(
             Embedding(input_dim=VOCABULARY_SIZE,
                       output_dim=EMBEDDING_SIZE,
                       input_length=MAX_SEQ_LENGTH,
                       weights=[embedding_weights],
                       trainable=True))
-        rnn.add(
-            SimpleRNN(64,
-                      kernel_regularizer='l2',
-                      activity_regularizer='l2',
-                      return_sequences=True))
-        rnn.add(
+        brnn.add(
+            Bidirectional(
+                SimpleRNN(64,
+                          kernel_regularizer='l2',
+                          activity_regularizer='l2',
+                          return_sequences=True)))
+        brnn.add(
             TimeDistributed(
                 Dense(NUM_CLASSES,
                       activation="softmax",
                       kernel_regularizer='l2',
                       activity_regularizer='l2')))
-        rnn.compile(loss="categorical_crossentropy",
-                    optimizer="adam",
-                    metrics=["acc"])
+        brnn.compile(loss="categorical_crossentropy",
+                     optimizer="adam",
+                     metrics=["acc"])
 
-        # Train RNN model
-        rnn.fit(X, y, batch_size=128, epochs=10)
-        self.__model = rnn
+        # Train BiRNN model
+        brnn.fit(X, y, batch_size=128, epochs=10)
+        self.__model = brnn
 
     def train(self, input_data):
         X, y, X_index = self.__prepare_training_data(input_data)
         embedding_weights = self.__word_embed(X_index)
 
-        # Setting constants for RNN training
+        # Setting constants for BiRNN training
         EMBEDDING_SIZE = 300
         VOCABULARY_SIZE = len(X_index) + 1
         MAX_SEQ_LENGTH = max([len(i) for i in X])
         NUM_CLASSES = self.__y_num_classes
 
-        # RNN Instantion
-        rnn = Sequential()
-        rnn.add(
+        # BiRNN Instantion
+        brnn = Sequential()
+        brnn.add(
             Embedding(input_dim=VOCABULARY_SIZE,
                       output_dim=EMBEDDING_SIZE,
                       input_length=MAX_SEQ_LENGTH,
                       weights=[embedding_weights],
                       trainable=True))
-        rnn.add(
-            SimpleRNN(64,
-                      kernel_regularizer='l2',
-                      activity_regularizer='l2',
-                      return_sequences=True))
-        rnn.add(
+        brnn.add(
+            Bidirectional(
+                SimpleRNN(64,
+                          kernel_regularizer='l2',
+                          activity_regularizer='l2',
+                          return_sequences=True)))
+        brnn.add(
             TimeDistributed(
                 Dense(NUM_CLASSES,
                       activation="softmax",
                       kernel_regularizer='l2',
                       activity_regularizer='l2')))
-        rnn.compile(loss="categorical_crossentropy",
-                    optimizer="adam",
-                    metrics=["acc"])
+        brnn.compile(loss="categorical_crossentropy",
+                     optimizer="adam",
+                     metrics=["acc"])
 
-        # Train RNN model
+        # Train BiRNN model
         kf = KFold(10, shuffle=True)
         for k, (train, test) in enumerate(kf.split(X, y)):
-            rnn.fit(X[train], y[train], batch_size=128, epochs=10)
-            loss, accuracy = rnn.evaluate(X[test], y[test], verbose=False)
+            brnn.fit(X[train], y[train], batch_size=128, epochs=10)
+            loss, accuracy = brnn.evaluate(X[test], y[test], verbose=False)
             print(f"[fold{k}] score : {accuracy:.5f}")
-        self.__model = rnn
+        self.__model = brnn
 
     def accuracy(self, input_data):
         if self.__model is None:
-            print("Please train the RNN first.")
+            print("Please train the BiRNN first.")
             return None
         else:
             X_test, y_test, _, _ = self.__prepare_test_data(input_data)
@@ -164,7 +166,7 @@ class RNNTagger(WordEmbeddingClassifier):
 
     def classify(self, input_data):
         if self.__model is None:
-            print("Please train the RNN first.")
+            print("Please train the BiRNN first.")
         else:
             X_test, y_test, X_tokenizer, y_tokenizer = self.__prepare_test_data(
                 input_data)
@@ -189,9 +191,9 @@ def printtags():
 
 
 def test():
-    rnn = RNNTagger()
+    brnn = BiRNNTagger()
     input_data = "train.conll"
     test_data = "test.conll"
-    rnn.train(input_data)
-    rnn.accuracy(test_data)
-    sentences, tags = rnn.classify(test_data)
+    brnn.train(input_data)
+    brnn.accuracy(test_data)
+    sentences, tags = brnn.classify(test_data)

@@ -85,7 +85,9 @@ class EnsembleTagger(WordEmbeddingClassifier):
             predictions = self.__model.predict(data_vectors)
             acc = accuracy_score(true_tags, predictions)
             input_filename = os.path.basename(input_path)
-            print(f'This model has an accuracy of {acc * 100:.02f}% on {input_filename}.')
+            print(
+                f'This model has an accuracy of {acc * 100:.02f}% on {input_filename}.'
+            )
             return acc * 100
 
     def classify(self, input_path) -> List:

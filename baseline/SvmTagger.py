@@ -2,10 +2,10 @@ from datetime import datetime
 from typing import List
 from dataclasses import dataclass
 from sklearn import svm
-from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.pipeline import make_pipeline
+from sklearn.model_selection import KFold
 from baseline.WordEmbeddingClassifier import WordEmbeddingClassifier
 
 import os
@@ -51,33 +51,20 @@ class SvmClassifier(WordEmbeddingClassifier):
         if self.__options.load_pretrained:
             if self.load_model():
                 print('Found pretrained svm model. Skipping training ' +
-                '(use --force-train to force training).')
+                      '(use --force-train to force training).')
                 return
             else:
                 print("No pretrained svm model found, training now...")
 
         _, data_in, data_out = self.prepare_data(input_data)
-        in_train, in_test, out_train, out_test = train_test_split(
-            data_in, data_out)
-
-        if self.__options.use_grid_search:
-            params = {
-                # TODO: params
-                'C': [0.1, 1, 10, 100, 1000],
-            }
-            clf = make_pipeline(
-                StandardScaler(),
-                GridSearchCV(self.__options.svm, params, n_jobs=4, refit=True))
-        else:
-            clf = make_pipeline(MinMaxScaler(feature_range=(-1,1)), self.__options.svm)
-
-        clf.fit(X=in_train, y=out_train)
+        kf = KFold(10, shuffle=True)
+        clf = make_pipeline(MinMaxScaler(feature_range=(-1, 1)),
+                            self.__options.svm)
+        for k, (train, test) in enumerate(kf.split(data_in, data_out)):
+            clf.fit(data_in[train], data_out[train])
+            print("[fold {0}] score: {1:.5f}".format(
+                k, clf.score(data_in[test], data_out[test])))
         self.__model = clf
-
-        # Check accuracy on test set
-        out_predicted = self.__model.predict(in_test)
-        acc = accuracy_score(out_test, out_predicted)
-        print(f"This model has a training accuracy of {acc * 100:.2f}%.")
 
         # Save model to file
         os.makedirs('./models/', exist_ok=True)
@@ -94,7 +81,8 @@ class SvmClassifier(WordEmbeddingClassifier):
             predictions = self.__model.predict(data_vectors)
             acc = accuracy_score(true_tags, predictions)
             input_filename = os.path.basename(input_path)
-            print(f'This model has an accuracy of {acc * 100:02}% on {input_filename}.')
+            print(f'This model has an accuracy of {acc * 100:02}% ' +
+                  f'on {input_filename}.')
             return acc * 100
 
     def classify(self, input_path) -> List:
@@ -108,7 +96,8 @@ class SvmClassifier(WordEmbeddingClassifier):
             predictions = self.__model.predict(data_vectors)
             input_filename = os.path.basename(input_path)
             os.makedirs('./output/', exist_ok=True)
-            file_name = f'./output/svm_{input_filename}_{datetime.now():%Y-%m-%d_%H%M}.tsv'
+            file_name = f'./output/svm_{input_filename}_' + \
+                        f'{datetime.now():%Y-%m-%d_%H%M}.tsv'
             with open(file_name, 'w') as f:
                 f.write("word\tpredicted tag\n")
                 for (d_input, d_output) in zip(words, predictions):

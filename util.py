@@ -36,7 +36,7 @@ def download_data(langs: List[str],
         langs (List[str]): [description] force (bool): [description]
     """
     print('Downloading...')
-    base_url = 'https://raw.githubusercontent.com/RikVN/DRS_parsing/master/parsing/layer_data/{version}'
+    base_url = f'https://raw.githubusercontent.com/RikVN/DRS_parsing/master/parsing/layer_data/{version}'
     for lang in langs:
         save_path = f'./data/{lang}'
         for fname in ['train.conll', 'test.conll', 'dev.conll', 'eval.conll']:

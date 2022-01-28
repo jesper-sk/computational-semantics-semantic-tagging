@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from sklearn import pipeline, svm
 from baseline.WordEmbeddingClassifier import WordEmbeddingClassifier
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, KFold
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.ensemble import VotingClassifier
@@ -51,14 +51,14 @@ class EnsembleTagger(WordEmbeddingClassifier):
                                      svm.SVC())
 
         # Create ensemble model
+        kf = KFold(10, shuffle=True)
         vcl = VotingClassifier(estimators=[('dt', dtc), ('svm', svc)])
-        vcl.fit(X=in_train, y=out_train)
-        self.__model = vcl
+        for k, (train, test) in enumerate(kf.split(data_in, data_out)):
+            vcl.fit(data_in[train], data_out[train])
+            print("[fold {0}] score: {1:.5f}".format(
+                k, vcl.score(data_in[test], data_out[test])))
 
-        # Check accuracy on test set
-        out_predicted = self.__model.predict(in_test)
-        acc = accuracy_score(out_test, out_predicted)
-        print(f"This model has a training accuracy of {acc * 100:.2f}%.")
+        self.__model = vcl
 
         # Save model to file
         os.makedirs('./models/', exist_ok=True)
